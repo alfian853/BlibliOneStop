@@ -1,6 +1,7 @@
 package com.gdn.onestop.entity;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.CreatedDate;
@@ -25,12 +26,15 @@ public class Post {
 
     @CreatedDate
     Date createdAt;
+
+
+    @Data
+    @Builder
+    public static class Comment {
+        String username;
+        String text;
+        Date date;
+    }
 }
 
-@Data
-class Comment {
-    String username;
-    String text;
-    Integer likes;
-}
 

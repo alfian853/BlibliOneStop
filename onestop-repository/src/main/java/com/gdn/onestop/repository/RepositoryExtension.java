@@ -47,10 +47,10 @@ public interface RepositoryExtension<ENTITY> {
         query.with(pageable);
 
 
-//        if(requestQuery.getSortBy() != null){
-//            Sort sort = new Sort(requestQuery.getDirection(), requestQuery.getSortBy().getMongoFieldValue());
-//            query.with(sort);
-//        }
+        if(requestQuery.getSortBy() != null){
+            Sort sort = new Sort(requestQuery.getDirection(), requestQuery.getSortBy().getMongoFieldValue());
+            query.with(sort);
+        }
 
         List<ENTITY> list = this.getMongoTemplate().find(query, this.getEntityClass());
         return PageableExecutionUtils.getPage(list, pageable,

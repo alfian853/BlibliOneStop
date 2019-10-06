@@ -11,8 +11,10 @@ public class IdeaPostDto {
     String id;
     String username;
     String content;
-    Integer totalComment;
+    Integer commentCount;
     Date createdAt;
-    Integer voteUp;
-    Integer voteDown;
+    Integer upVoteCount;
+    Integer downVoteCount;
+    Boolean isMeVoteUp;
+    Boolean getIsMeVoteDown;
 }

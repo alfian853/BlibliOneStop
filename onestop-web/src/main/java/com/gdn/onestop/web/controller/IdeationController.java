@@ -1,20 +1,23 @@
 package com.gdn.onestop.web.controller;
 
 import com.gdn.onestop.dto.IdeaPostDto;
-import com.gdn.onestop.dto.PostDto;
 import com.gdn.onestop.entity.User;
 import com.gdn.onestop.repository.UserRepository;
+import com.gdn.onestop.request.CommentRequest;
 import com.gdn.onestop.request.IdeationRequest;
 import com.gdn.onestop.response.Response;
 import com.gdn.onestop.response.ResponseHelper;
 import com.gdn.onestop.service.IdeationService;
+import com.gdn.onestop.service.exception.InvalidRequestException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import javax.validation.constraints.Min;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/idea")
@@ -27,23 +30,42 @@ public class IdeationController {
     UserRepository userRepository;
 
     @PostMapping
-    public Response<PostDto> postIdea(@Valid @RequestBody IdeationRequest request){
-        ideationService.addIdeation(request);
-        return Response.<PostDto>builder().status("success").code(200).data(new PostDto()).build();
+    public Response<IdeaPostDto> postIdea(@Valid @RequestBody IdeationRequest request){
+        return Response.<IdeaPostDto>builder()
+                .status("success")
+                .code(200)
+                .data(ideationService.addIdea(request))
+                .build();
     }
 
     private PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
     @GetMapping
     public Response<List<IdeaPostDto>> getIdeas(
-            @RequestParam(defaultValue = "0") Integer page,
+            @RequestParam(defaultValue = "1") Integer page,
             @RequestParam(value = "item_per_page", defaultValue = "5") Integer itemPerPage){
-
+            if(page < 1)throw new InvalidRequestException("min page is 1");
+            page--;
         return ResponseHelper.isOk(
-                ideationService.getIdeations(page, itemPerPage)
+                ideationService.getIdeas(page, itemPerPage)
         );
     }
 
+
+    @PostMapping("/{id}/vote")
+    public Response<Boolean> voteIdea(@PathVariable("id") String id, @RequestParam("vote_up") Boolean isVoteUp){
+        return ResponseHelper.isOk(ideationService.voteIdea(id, isVoteUp));
+    }
+
+    @GetMapping("/{id}/vote")
+    public Response<Map<String, Boolean>> getIdeaVoter(@PathVariable("id") String id){
+        return ResponseHelper.isOk(ideationService.getIdeaVoter(id));
+    }
+
+    @PostMapping("/{id}/comment")
+    public Response<Boolean> comment(@PathVariable("id") String id, @RequestBody CommentRequest request){
+        return ResponseHelper.isOk(ideationService.addComment(id, request.getText()));
+    }
 
     @PostMapping("/create-user")
     public String createuser(){
