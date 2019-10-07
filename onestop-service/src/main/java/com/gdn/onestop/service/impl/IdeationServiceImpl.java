@@ -1,18 +1,20 @@
 package com.gdn.onestop.service.impl;
 
 import com.gdn.onestop.dto.IdeaPostDto;
+import com.gdn.onestop.entity.IdeaComment;
 import com.gdn.onestop.entity.IdeaPost;
-import com.gdn.onestop.entity.Post;
 import com.gdn.onestop.repository.AdvancedQuery;
+import com.gdn.onestop.repository.IdeaCommentRepository;
+import com.gdn.onestop.repository.IdeationRepository;
 import com.gdn.onestop.repository.enums.IdeaEntitiyField;
 import com.gdn.onestop.request.IdeationRequest;
 import com.gdn.onestop.service.IdeationService;
-import com.gdn.onestop.repository.IdeationRepository;
 import com.gdn.onestop.service.exception.NotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
@@ -24,6 +26,9 @@ public class IdeationServiceImpl implements IdeationService {
 
     @Autowired
     IdeationRepository ideationRepository;
+
+    @Autowired
+    IdeaCommentRepository commentRepository;
 
     private IdeaPostDto mapPostToDto(IdeaPost post){
         String username = "user";
@@ -51,12 +56,11 @@ public class IdeationServiceImpl implements IdeationService {
         IdeaPost post = new IdeaPost();
         post.setUpVoteCount(0);
         post.setDownVoteCount(0);
-        post.setComments(new LinkedList<>());
         post.setContent(request.getContent());
         post.setTotalComment(0);
         post.setUsername("user");
         ideationRepository.save(post);
-
+        commentRepository.save(IdeaComment.builder().id(post.getId()).comments(new LinkedList<>()).build());
         return mapPostToDto(post);
     }
 
@@ -81,17 +85,24 @@ public class IdeationServiceImpl implements IdeationService {
     @Override
     public boolean addComment(String id, String comment) {
         IdeaPost ideaPost = ideationRepository.findById(id).orElseThrow(NotFoundException::new);
+        IdeaComment ideaComment = commentRepository.findById(id)
+                .orElseGet( ()-> IdeaComment.builder().id(ideaPost.getId()).build() );
+
         ideaPost.setTotalComment(ideaPost.getTotalComment()+1);
-        ideaPost.getComments().add(
-                Post.Comment.builder()
-                        .username("user").date(new Date())
-                        .text(comment)
-                .build()
-        );
+
+        ideaComment.getComments().addFirst(IdeaComment.CommentUnit.builder()
+                    .username("user").date(new Date())
+                    .text(comment)
+                    .build());
 
         ideationRepository.save(ideaPost);
-
+        commentRepository.save(ideaComment);
         return true;
+    }
+
+    @Override
+    public List<IdeaComment.CommentUnit> getComments(String postId, int page, int itemPerPage) {
+        return commentRepository.getPaginatedCommentById(postId, page, itemPerPage);
     }
 
     @Override

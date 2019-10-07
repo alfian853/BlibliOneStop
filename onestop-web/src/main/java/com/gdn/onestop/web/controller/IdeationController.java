@@ -1,6 +1,8 @@
 package com.gdn.onestop.web.controller;
 
+import com.gdn.onestop.dto.CommentDto;
 import com.gdn.onestop.dto.IdeaPostDto;
+import com.gdn.onestop.entity.IdeaComment;
 import com.gdn.onestop.entity.User;
 import com.gdn.onestop.repository.UserRepository;
 import com.gdn.onestop.request.CommentRequest;
@@ -63,8 +65,17 @@ public class IdeationController {
     }
 
     @PostMapping("/{id}/comment")
-    public Response<Boolean> comment(@PathVariable("id") String id, @RequestBody CommentRequest request){
+    public Response<Boolean> postComment(@PathVariable("id") String id, @RequestBody CommentRequest request){
         return ResponseHelper.isOk(ideationService.addComment(id, request.getText()));
+    }
+
+    @GetMapping("/{id}/comment")
+    public Response<List<IdeaComment.CommentUnit>> getComments(
+            @PathVariable("id") String id,
+            @RequestParam(defaultValue = "1") Integer page,
+            @RequestParam(value = "item_per_page", defaultValue = "5") Integer itemPerPage){
+
+        return ResponseHelper.isOk(ideationService.getComments(id, page, itemPerPage));
     }
 
     @PostMapping("/create-user")

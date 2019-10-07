@@ -27,8 +27,10 @@ public interface RepositoryExtension<ENTITY> {
         boolean emptyCriteria = true;
         if(requestQuery.getSearch() != null){
             getFieldList().forEach(field -> {
-                andCriteria.add(Criteria.where(field.getMongoFieldValue())
-                        .regex(requestQuery.getSearch(),"i"));
+                if(field.isSearchable()){
+                    andCriteria.add(Criteria.where(field.getField())
+                            .regex(requestQuery.getSearch(),"i"));
+                }
             });
             emptyCriteria = false;
         }
@@ -46,9 +48,13 @@ public interface RepositoryExtension<ENTITY> {
         }
         query.with(pageable);
 
-
         if(requestQuery.getSortBy() != null){
-            Sort sort = new Sort(requestQuery.getDirection(), requestQuery.getSortBy().getMongoFieldValue());
+            if(!requestQuery.getSortBy().isSortable()){
+                throw new RuntimeException(
+                        "Field "+requestQuery.getSortBy().getField()+" is not sortable"
+                );
+            }
+            Sort sort = new Sort(requestQuery.getDirection(), requestQuery.getSortBy().getField());
             query.with(sort);
         }
 
