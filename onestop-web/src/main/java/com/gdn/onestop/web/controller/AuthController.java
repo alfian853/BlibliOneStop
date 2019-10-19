@@ -3,8 +3,10 @@ package com.gdn.onestop.web.controller;
 import com.gdn.onestop.entity.User;
 import com.gdn.onestop.request.LoginRequest;
 import com.gdn.onestop.response.LoginResponse;
+import com.gdn.onestop.service.exception.InvalidRequestException;
 import com.gdn.onestop.service.impl.MongoUserDetailsService;
 import com.gdn.onestop.web.config.jwt.JwtTokenProvider;
+import org.omg.CORBA.DynAnyPackage.Invalid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -30,7 +32,7 @@ public class AuthController {
     @PostMapping("/login")
     public LoginResponse login(@RequestBody LoginRequest data) {
         User user = userService.loadUserByUsername(data.getUsername());
-
+        System.out.println(data);
         try {
             String username = user.getUsername();
             authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(username, data.getPassword()));
@@ -43,7 +45,7 @@ public class AuthController {
 
             return response;
         } catch (AuthenticationException e) {
-            throw new BadCredentialsException ("Invalid username or password!");
+            throw new InvalidRequestException("Invalid username or password!");
         }
     }
 }
