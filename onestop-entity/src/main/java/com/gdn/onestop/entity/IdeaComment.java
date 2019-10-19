@@ -16,6 +16,7 @@ public class IdeaComment {
     @Id
     String id;
 
+    // use linkedlist for better performance because every new item will be append to front of list
     LinkedList<CommentUnit> comments;
 
     @Data

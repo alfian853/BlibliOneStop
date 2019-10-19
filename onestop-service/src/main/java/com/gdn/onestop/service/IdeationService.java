@@ -1,5 +1,6 @@
 package com.gdn.onestop.service;
 
+import com.gdn.onestop.dto.CommentDto;
 import com.gdn.onestop.dto.IdeaPostDto;
 import com.gdn.onestop.entity.IdeaComment;
 import com.gdn.onestop.request.IdeationRequest;
@@ -12,7 +13,7 @@ public interface IdeationService {
     IdeaPostDto addIdea(IdeationRequest request);
     List<IdeaPostDto> getIdeas(int page, int itemPerPage);
 
-    boolean addComment(String id, String comment);
+    CommentDto addComment(String id, String comment);
     List<IdeaComment.CommentUnit> getComments(String postId, int page, int itemPerPage);
 
     boolean voteIdea(String id, boolean isVoteUp);

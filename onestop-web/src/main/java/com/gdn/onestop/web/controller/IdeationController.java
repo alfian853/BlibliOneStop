@@ -3,10 +3,12 @@ package com.gdn.onestop.web.controller;
 import com.gdn.onestop.dto.CommentDto;
 import com.gdn.onestop.dto.IdeaPostDto;
 import com.gdn.onestop.entity.IdeaComment;
+import com.gdn.onestop.entity.IdeaPost;
 import com.gdn.onestop.entity.User;
 import com.gdn.onestop.repository.UserRepository;
 import com.gdn.onestop.request.CommentRequest;
 import com.gdn.onestop.request.IdeationRequest;
+import com.gdn.onestop.response.CommentPostResponse;
 import com.gdn.onestop.response.Response;
 import com.gdn.onestop.response.ResponseHelper;
 import com.gdn.onestop.service.IdeationService;
@@ -65,8 +67,12 @@ public class IdeationController {
     }
 
     @PostMapping("/{id}/comment")
-    public Response<Boolean> postComment(@PathVariable("id") String id, @RequestBody CommentRequest request){
-        return ResponseHelper.isOk(ideationService.addComment(id, request.getText()));
+    public Response<CommentDto> postComment(
+            @PathVariable("id") String id,
+            @Valid @RequestBody CommentRequest request){
+        return ResponseHelper.isOk(
+                ideationService.addComment(id, request.getText())
+        );
     }
 
     @GetMapping("/{id}/comment")

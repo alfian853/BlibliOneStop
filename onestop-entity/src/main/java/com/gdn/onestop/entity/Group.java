@@ -1,5 +1,6 @@
 package com.gdn.onestop.entity;
 
+import com.gdn.onestop.model.GroupType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -20,6 +21,7 @@ public class Group {
     String id;
     String name;
 
+    GroupType type;
+
     List<String> members;
-    List<Post> posts;
 }
