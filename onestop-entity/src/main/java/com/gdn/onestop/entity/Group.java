@@ -20,8 +20,11 @@ public class Group {
     @Id
     String id;
     String name;
+    String groupCode;
 
     GroupType type;
 
     List<String> members;
+
+
 }

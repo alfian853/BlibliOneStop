@@ -4,25 +4,24 @@ import java.util.Arrays;
 import java.util.List;
 
 public enum GroupPostEntityField implements MongoEntityField {
-    POST_COUNT("postCount"),
-    MEETING_POST_COUNT("meetingPostCount"),
-    POSTS_INFO("postsInfo"),
-    MEETING_POSTS("meetingPosts"),
-    POSTS("posts");
+
+    MEMBERS("members"),
+    CHATS("chats"),
+    CHAT_CREATED_AT("createdAt");
 
     private String field;
 
     GroupPostEntityField(String field){
-        field = field;
+        this.field = field;
     }
 
     private static List<MongoEntityField> groupPostMongoFieldList = Arrays.asList(
-        POST_COUNT,MEETING_POST_COUNT,POSTS_INFO,MEETING_POSTS,POSTS
+        MEMBERS,CHATS, CHAT_CREATED_AT
     );
 
     @Override
     public String getField() {
-        return field;
+        return this.field;
     }
 
     @Override

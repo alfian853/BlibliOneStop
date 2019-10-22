@@ -30,14 +30,14 @@ public class User implements UserDetails {
     String password;
 
     // game
-    Integer likesFromPosting;
-    Integer likesFromComment;
-    Integer readedBooks;
-    Integer listenedAudios;
-    Integer level;
-    Integer experience;
+    Integer likesFromPosting = 0;
+    Integer likesFromComment = 0;
+    Integer readedBooks = 0;
+    Integer listenedAudios = 0;
+    Integer level = 0;
+    Integer experience = 0;
 
-    private boolean isAdmin = false;
+    Boolean isAdmin = false;
 
     @Transient
     private boolean enabled = true;

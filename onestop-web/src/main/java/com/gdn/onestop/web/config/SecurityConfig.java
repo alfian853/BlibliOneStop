@@ -54,7 +54,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 .and()
                 .authorizeRequests()
-                .antMatchers("/auth/login",
+                .antMatchers("/auth/*",
                         "/swagger-ui.html",
                         "/v2/api-docs",
                         "/docs",
@@ -63,12 +63,12 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                         "/download/**")
                 .permitAll()
                 .anyRequest().permitAll()//.authenticated()
-//                .and()
-//                .exceptionHandling()
-//                .and()
-//                    .apply(new JwtConfigurer(jwtTokenProvider))
-//                .and()
-//                .addFilterBefore(corsFilter, ChannelProcessingFilter.class)
+                .and()
+                .exceptionHandling()
+                .and()
+                    .apply(new JwtConfigurer(jwtTokenProvider))
+                .and()
+                .addFilterBefore(corsFilter, ChannelProcessingFilter.class)
 
         ;
 
