@@ -3,6 +3,7 @@ package com.gdn.onestop.service.impl;
 import com.gdn.onestop.dto.UserGroupDto;
 import com.gdn.onestop.entity.*;
 import com.gdn.onestop.model.GroupModel;
+import com.gdn.onestop.model.GroupType;
 import com.gdn.onestop.repository.*;
 import com.gdn.onestop.request.CreateGroupRequest;
 import com.gdn.onestop.request.ChatRequest;
@@ -28,13 +29,22 @@ public class GroupServiceImpl implements GroupService {
         return userGroupRepository.findById(userId).orElseGet(()->{
             UserGroup ug = new UserGroup();
             ug.setId(userId);
-            ug.setGroups(new LinkedList<>());
+            ug.setGuilds(new LinkedList<>());
             ug.setSquads(new LinkedList<>());
             ug.setTribes(new LinkedList<>());
 
             userGroupRepository.save(ug);
             return ug;
         });
+    }
+
+    private GroupModel groupToGroupModel(Group group){
+        return new GroupModel(
+                group.getId(),
+                group.getName(),
+                group.getGroupCode(),
+                group.getType()
+        );
     }
 
     @Override
@@ -57,25 +67,22 @@ public class GroupServiceImpl implements GroupService {
 
         UserGroup userGroup = getUserGroupByUserId(user.getId());
 
-        GroupModel groupModel = new GroupModel(group.getId(), group.getName());
-
         switch (request.getType()){
             case GUILD:
-                userGroup.getGroups().add(groupModel);
+                userGroup.getGuilds().add(group.getId());
                 break;
             case SQUAD:
-                userGroup.getSquads().add(groupModel);
+                userGroup.getSquads().add(group.getId());
                 break;
             case TRIBE:
-                userGroup.getTribes().add(groupModel);
+                userGroup.getTribes().add(group.getId());
                 break;
         }
 
         userGroupRepository.save(userGroup);
 
 
-
-        return new GroupModel(group.getId(),group.getName(), group.getType());
+        return groupToGroupModel(group);
     }
 
     @Override
@@ -83,12 +90,23 @@ public class GroupServiceImpl implements GroupService {
 
         UserGroup userGroup = getUserGroupByUserId(user.getId());
 
-        return UserGroupDto.builder()
-                .username(user.getUsername())
-                .groups(userGroup.getGroups())
-                .squads(userGroup.getSquads())
-                .tribes(userGroup.getTribes())
-                .build();
+        UserGroupDto response = new UserGroupDto();
+
+        System.out.println(userGroup.getGuilds().size()+userGroup.getSquads().size()+userGroup.getTribes().size());
+        userGroup.getTribes().forEach(
+                tribeId -> response.getTribes().add(groupToGroupModel(groupRepository.findGroupById(tribeId)))
+        );
+        userGroup.getSquads().forEach(
+                squadId -> response.getSquads().add(groupToGroupModel(groupRepository.findGroupById(squadId)))
+        );
+        userGroup.getGuilds().forEach(
+                guildId -> response.getGuilds().add(groupToGroupModel(groupRepository.findGroupById(guildId)))
+        );
+
+        response.setLastUpdate(userGroup.getUpdatedAt());
+        response.setUsername(user.getUsername());
+
+        return response;
     }
 
     @Override
@@ -120,13 +138,77 @@ public class GroupServiceImpl implements GroupService {
         return groupRepository.getGroupChatAfterTime(groupId, fromTime);
     }
 
+    @Override
+    public GroupModel joinGroup(User user, String groupCode) {
+
+        Group group = groupRepository.findGroupByGroupCode(groupCode).orElseThrow(NotFoundException::new);
+
+        UserGroup userGroup = getUserGroupByUserId(user.getId());
+
+        boolean alreadyJoin = false;
+
+        if(group.getType().equals(GroupType.TRIBE)){
+            alreadyJoin = userGroup.getTribes().stream()
+                    .anyMatch(groupId -> groupId.equals(group.getId()));
+        }
+        else if(group.getType().equals(GroupType.SQUAD)){
+            alreadyJoin = userGroup.getSquads().stream()
+                    .anyMatch(groupId -> groupId.equals(group.getId()));
+        }
+        else{
+            alreadyJoin = userGroup.getGuilds().stream()
+                    .anyMatch(groupId -> groupId.equals(group.getId()));
+        }
+
+        if(!alreadyJoin){
+            group.getMembers().add(user.getUsername());
+            userGroup.getGroupByType(group.getType()).add(group.getId());
+            groupRepository.save(group);
+            userGroupRepository.save(userGroup);
+        }
+
+        return groupToGroupModel(group);
+    }
+
+    @Override
+    public Date getUserGroupLastUpdate(User user) {
+        return getUserGroupByUserId(user.getId()).getUpdatedAt();
+    }
+
+    @Override
+    public void leaveGroup(User user, String groupId) {
+        Group group = groupRepository.findGroupById(groupId);
+
+        group.getMembers().remove(user.getUsername());
+
+        List<String> groups = null;
+
+        UserGroup userGroup = userGroupRepository.findById(user.getId()).get();
+
+        switch (group.getType()){
+            case GUILD:
+                groups = userGroup.getGuilds();
+                break;
+            case SQUAD:
+                groups = userGroup.getSquads();
+                break;
+            case TRIBE:
+                groups = userGroup.getTribes();
+                break;
+        }
+        groups.remove(groupId);
+
+        userGroupRepository.save(userGroup);
+        groupRepository.save(group);
+    }
+
     private void checkMemberValidity(User user, String groupId){
 
         UserGroup userGroup = getUserGroupByUserId(user.getId());
 
         Group group = groupRepository.findById(groupId).orElseThrow(NotFoundException::new);
 
-        List<GroupModel> groupList = null;
+        List<String> groupList = null;
 
         switch (group.getType()){
             case TRIBE:
@@ -136,11 +218,11 @@ public class GroupServiceImpl implements GroupService {
                 groupList = userGroup.getSquads();
                 break;
             case GUILD:
-                groupList = userGroup.getGroups();
+                groupList = userGroup.getGuilds();
                 break;
         }
 
-        boolean isJoined = groupList.stream().anyMatch(groupModel -> groupModel.getId().equals(groupId));
+        boolean isJoined = groupList.stream().anyMatch(_groupId -> _groupId.equals(groupId));
 
         if(!isJoined)throw new InvalidRequestException("Not a group member");
     }

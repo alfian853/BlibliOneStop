@@ -18,4 +18,10 @@ public interface GroupService {
     Chat addChat(User user, String groupId, ChatRequest request);
 
     List<Chat> getGroupChat(User user, String groupId, Date fromTime);
+
+    GroupModel joinGroup(User user, String groupCode);
+
+    Date getUserGroupLastUpdate(User user);
+
+    void leaveGroup(User user, String groupId);
 }

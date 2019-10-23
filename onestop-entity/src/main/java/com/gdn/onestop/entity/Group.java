@@ -14,7 +14,7 @@ import java.util.List;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-@Document("groups")
+@Document("group")
 public class Group {
 
     @Id

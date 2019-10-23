@@ -10,7 +10,6 @@ import com.gdn.onestop.response.ResponseHelper;
 import com.gdn.onestop.service.GroupService;
 import com.gdn.onestop.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Date;
@@ -34,12 +33,33 @@ public class GroupController {
         );
     }
 
+    @GetMapping("/last_update")
+    Response<Date> getUserGroupLastUpdate(){
+        return ResponseHelper.isOk(groupService.getUserGroupLastUpdate(userService.getUserBySession()));
+    }
+
     @GetMapping
     Response<UserGroupDto> getGroups(){
         return ResponseHelper.isOk(
                 groupService.getGroupData(userService.getUserBySession())
         );
     }
+
+    @PostMapping("/join_group")
+    Response<GroupModel> joinGroup(
+            @RequestParam("group_code") String groupCode
+    ){
+        return ResponseHelper.isOk(
+                groupService.joinGroup(userService.getUserBySession(), groupCode)
+        );
+    }
+
+    @PostMapping("/{groupId}/leave")
+    Response<Boolean> leaveGroup(@PathVariable("groupId") String groupId){
+        groupService.leaveGroup(userService.getUserBySession(), groupId);
+        return ResponseHelper.isOk(true);
+    }
+
 
     @PostMapping("/{groupId}/chat")
     Response<Chat> addGroupPost(@PathVariable("groupId") String groupId,
@@ -58,7 +78,6 @@ public class GroupController {
         return ResponseHelper.isOk(
                 groupService.getGroupChat(userService.getUserBySession(), groupId, fromDate)
         );
-
     }
 
 }

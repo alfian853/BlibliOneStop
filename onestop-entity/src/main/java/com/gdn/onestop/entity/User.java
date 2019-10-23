@@ -19,7 +19,7 @@ import java.util.LinkedList;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-@Document("users")
+@Document
 public class User implements UserDetails {
 
     @Id

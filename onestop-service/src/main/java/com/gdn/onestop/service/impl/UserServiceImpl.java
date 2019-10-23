@@ -23,13 +23,13 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User getUserBySession() {
-//        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-//        return (User) auth.getPrincipal();
-        User user = new User();
-        user.setUsername("user");
-        user.setId("5d78f00d1293690d6d2dd5ee");
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        return (User) auth.getPrincipal();
+//        User user = new User();
+//        user.setUsername("user");
+//        user.setId("5d78f00d1293690d6d2dd5ee");
 
-        return user;
+//        return user;
     }
 
     @Override
