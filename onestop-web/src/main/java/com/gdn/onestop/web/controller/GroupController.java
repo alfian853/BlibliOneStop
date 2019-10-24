@@ -1,17 +1,24 @@
 package com.gdn.onestop.web.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gdn.onestop.dto.UserGroupDto;
-import com.gdn.onestop.entity.Chat;
+import com.gdn.onestop.entity.User;
+import com.gdn.onestop.model.ChatModel;
 import com.gdn.onestop.model.GroupModel;
+import com.gdn.onestop.request.ChatSendRequest;
 import com.gdn.onestop.request.CreateGroupRequest;
-import com.gdn.onestop.request.ChatRequest;
 import com.gdn.onestop.response.Response;
 import com.gdn.onestop.response.ResponseHelper;
 import com.gdn.onestop.service.GroupService;
 import com.gdn.onestop.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.handler.annotation.Payload;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
+import java.security.Principal;
 import java.util.Date;
 import java.util.List;
 
@@ -25,6 +32,12 @@ public class GroupController {
 
     @Autowired
     UserService userService;
+
+    @Autowired
+    ObjectMapper objectMapper;
+
+    @Autowired
+    SimpMessagingTemplate template;
 
     @PostMapping
     Response<GroupModel> createGroup(@RequestBody CreateGroupRequest request){
@@ -61,22 +74,23 @@ public class GroupController {
     }
 
 
-    @PostMapping("/{groupId}/chat")
-    Response<Chat> addGroupPost(@PathVariable("groupId") String groupId,
-                                @RequestBody ChatRequest request){
-        return ResponseHelper.isOk(
-                groupService.addChat(userService.getUserBySession(), groupId, request)
-        );
+    @MessageMapping("/chat")
+    void addGroupPost(Principal principal, @Payload ChatSendRequest request) throws IOException {
+        ChatModel chat = groupService.addChat((User)principal, request.getGroupId(), request);
+        template.convertAndSend("/subscribe/chat/"+request.getGroupId(), chat);
     }
 
     @GetMapping("/{groupId}/chat")
-    Response<List<Chat>> getGroupChats(
+    Response<List<ChatModel>> getGroupChats(
             @PathVariable("groupId") String groupId,
-            @RequestParam("fromTime") Long milliseconds){
+            @RequestParam(value = "after_time", required = false) Long afterTime,
+            @RequestParam(value = "before_time", required = false) Long beforeTime,
+            @RequestParam(value = "size") Integer size){
 
-        Date fromDate = new Date(milliseconds);
         return ResponseHelper.isOk(
-                groupService.getGroupChat(userService.getUserBySession(), groupId, fromDate)
+                (afterTime != null) ?
+                    groupService.getGroupChatAfterTime(userService.getUserBySession(), groupId, new Date(afterTime), size) :
+                    groupService.getGroupChatBeforeTime(userService.getUserBySession(), groupId, new Date(beforeTime), size)
         );
     }
 

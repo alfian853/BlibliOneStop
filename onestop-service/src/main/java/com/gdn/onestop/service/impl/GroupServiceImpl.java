@@ -2,11 +2,12 @@ package com.gdn.onestop.service.impl;
 
 import com.gdn.onestop.dto.UserGroupDto;
 import com.gdn.onestop.entity.*;
+import com.gdn.onestop.model.ChatModel;
 import com.gdn.onestop.model.GroupModel;
 import com.gdn.onestop.model.GroupType;
 import com.gdn.onestop.repository.*;
 import com.gdn.onestop.request.CreateGroupRequest;
-import com.gdn.onestop.request.ChatRequest;
+import com.gdn.onestop.request.ChatSendRequest;
 import com.gdn.onestop.service.GroupService;
 import com.gdn.onestop.service.exception.InvalidRequestException;
 import com.gdn.onestop.service.exception.NotFoundException;
@@ -110,11 +111,11 @@ public class GroupServiceImpl implements GroupService {
     }
 
     @Override
-    public Chat addChat(User user, String groupId, ChatRequest request) {
+    public ChatModel addChat(User user, String groupId, ChatSendRequest request) {
 
         checkMemberValidity(user, groupId);
 
-        Chat chat = Chat.builder()
+        ChatModel chat = ChatModel.builder()
                 .username(user.getUsername())
                 .id(UUID.randomUUID().toString())
                 .text(request.getText())
@@ -132,10 +133,15 @@ public class GroupServiceImpl implements GroupService {
     }
 
     @Override
-    public List<Chat> getGroupChat(User user, String groupId, Date fromTime) {
-
+    public List<ChatModel> getGroupChatAfterTime(User user, String groupId, Date afterTime, Integer size) {
         checkMemberValidity(user, groupId);
-        return groupRepository.getGroupChatAfterTime(groupId, fromTime);
+        return groupRepository.getGroupChatAfterTime(groupId, afterTime, size);
+    }
+
+    @Override
+    public List<ChatModel> getGroupChatBeforeTime(User user, String groupId, Date beforeTime, Integer size) {
+        checkMemberValidity(user, groupId);
+        return groupRepository.getGroupChatBeforeTime(groupId, beforeTime, size);
     }
 
     @Override
@@ -202,7 +208,9 @@ public class GroupServiceImpl implements GroupService {
         groupRepository.save(group);
     }
 
-    private void checkMemberValidity(User user, String groupId){
+
+    @Override
+    public boolean isValidMember(User user, String groupId) {
 
         UserGroup userGroup = getUserGroupByUserId(user.getId());
 
@@ -222,9 +230,11 @@ public class GroupServiceImpl implements GroupService {
                 break;
         }
 
-        boolean isJoined = groupList.stream().anyMatch(_groupId -> _groupId.equals(groupId));
+        return groupList.stream().anyMatch(_groupId -> _groupId.equals(groupId));
+    }
 
-        if(!isJoined)throw new InvalidRequestException("Not a group member");
+    private void checkMemberValidity(User user, String groupId){
+        if(!isValidMember(user, groupId))throw new InvalidRequestException("Not a group member");
     }
 
 

@@ -11,6 +11,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.security.Principal;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
@@ -20,7 +21,7 @@ import java.util.LinkedList;
 @AllArgsConstructor
 @NoArgsConstructor
 @Document
-public class User implements UserDetails {
+public class User implements UserDetails, Principal {
 
     @Id
     String id;
@@ -65,4 +66,10 @@ public class User implements UserDetails {
         }
         else return DEFAULT_AUTHORITIES;
     }
+
+    @Override
+    public String getName() {
+        return username;
+    }
+
 }

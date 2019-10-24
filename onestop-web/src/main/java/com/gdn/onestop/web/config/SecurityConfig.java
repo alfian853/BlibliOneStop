@@ -1,7 +1,6 @@
 package com.gdn.onestop.web.config;
 
-import com.gdn.onestop.service.UserService;
-import com.gdn.onestop.service.impl.MongoUserDetailsService;
+import com.gdn.onestop.service.impl.OsUserDetailsService;
 import com.gdn.onestop.web.config.filter.CorsFilter;
 import com.gdn.onestop.web.config.jwt.JwtConfigurer;
 import com.gdn.onestop.web.config.jwt.JwtTokenProvider;
@@ -14,7 +13,6 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.access.channel.ChannelProcessingFilter;
@@ -28,7 +26,7 @@ import org.springframework.security.web.access.channel.ChannelProcessingFilter;
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Autowired
-    MongoUserDetailsService userDetailsService;
+    OsUserDetailsService userDetailsService;
 
     @Autowired
     JwtTokenProvider jwtTokenProvider;
@@ -62,14 +60,15 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                         "/webjars/**",
                         "/download/**")
                 .permitAll()
-                .anyRequest().permitAll()//.authenticated()
+                .anyRequest()
+//                .permitAll()
+                .authenticated()
                 .and()
                 .exceptionHandling()
                 .and()
                     .apply(new JwtConfigurer(jwtTokenProvider))
                 .and()
                 .addFilterBefore(corsFilter, ChannelProcessingFilter.class)
-
         ;
 
 

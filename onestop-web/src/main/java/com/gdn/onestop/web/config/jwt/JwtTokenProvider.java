@@ -1,20 +1,18 @@
 package com.gdn.onestop.web.config.jwt;
 
-import com.gdn.onestop.service.impl.MongoUserDetailsService;
+import com.gdn.onestop.service.impl.OsUserDetailsService;
 import io.jsonwebtoken.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
 import java.util.Base64;
 import java.util.Date;
-import java.util.List;
 
 @Component
 public class JwtTokenProvider {
@@ -25,7 +23,7 @@ public class JwtTokenProvider {
     private long validityInMilliseconds = 36000000; // 1 hour
 
     @Autowired
-    private MongoUserDetailsService userDetailsService;
+    private OsUserDetailsService userDetailsService;
 
     @PostConstruct
     protected void init(){
@@ -57,7 +55,7 @@ public class JwtTokenProvider {
 
     public String resolveToken(HttpServletRequest req) {
         String bearerToken = req.getHeader("Authorization");
-        if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
+        if (bearerToken != null && bearerToken.startsWith("Bearer")) {
             return bearerToken.substring(7);
         }
         return null;

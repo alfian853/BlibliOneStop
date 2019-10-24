@@ -1,4 +1,4 @@
-package com.gdn.onestop.entity;
+package com.gdn.onestop.model;
 
 
 import lombok.Builder;
@@ -8,7 +8,7 @@ import java.util.Date;
 
 @Builder
 @Data
-public class Chat {
+public class ChatModel {
 
     String id;
 

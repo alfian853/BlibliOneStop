@@ -8,7 +8,7 @@ import com.gdn.onestop.response.Response;
 import com.gdn.onestop.response.ResponseHelper;
 import com.gdn.onestop.service.UserService;
 import com.gdn.onestop.service.exception.InvalidRequestException;
-import com.gdn.onestop.service.impl.MongoUserDetailsService;
+import com.gdn.onestop.service.impl.OsUserDetailsService;
 import com.gdn.onestop.web.config.jwt.JwtTokenProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -29,7 +29,7 @@ public class AuthController {
     JwtTokenProvider jwtTokenProvider;
 
     @Autowired
-    MongoUserDetailsService userDetailService;
+    OsUserDetailsService userDetailService;
 
     @Autowired
     UserService userService;
