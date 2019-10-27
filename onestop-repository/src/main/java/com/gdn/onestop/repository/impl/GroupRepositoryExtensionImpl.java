@@ -53,15 +53,14 @@ public class GroupRepositoryExtensionImpl implements GroupRepositoryExtension {
 
     }
 
-    // TODO limit the fetch by size
-
     @Override
     public List<ChatModel> getGroupChatAfterTime(String groupId, Date date, Integer size) {
         TypedAggregation<GroupChat> agg = newAggregation(GroupChat.class,
                 match(where("_id").is(groupId)),
                 unwind("$"+CHATS.getField()),
                 match(Criteria.where(CHATS.getField()+"."+CHAT_CREATED_AT.getField()).gt(date)),
-                group("id").push("$"+CHATS.getField()).as(CHATS.getField())
+                group("id").push("$"+CHATS.getField()).as(CHATS.getField()),
+                project().andExpression(CHATS.getField()).slice(size,-size)
         );
 
         AggregationResults<GroupChat> result = mongoTemplate.aggregate(agg, GroupChat.class);
@@ -81,7 +80,8 @@ public class GroupRepositoryExtensionImpl implements GroupRepositoryExtension {
                 match(where("_id").is(groupId)),
                 unwind("$"+CHATS.getField()),
                 match(Criteria.where(CHATS.getField()+"."+CHAT_CREATED_AT.getField()).lt(date)),
-                group("id").push("$"+CHATS.getField()).as(CHATS.getField())
+                group("id").push("$"+CHATS.getField()).as(CHATS.getField()),
+                project().andExpression(CHATS.getField()).slice(size)
         );
 
         AggregationResults<GroupChat> result = mongoTemplate.aggregate(agg, GroupChat.class);

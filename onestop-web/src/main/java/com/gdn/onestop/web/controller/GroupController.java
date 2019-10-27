@@ -11,6 +11,7 @@ import com.gdn.onestop.response.Response;
 import com.gdn.onestop.response.ResponseHelper;
 import com.gdn.onestop.service.GroupService;
 import com.gdn.onestop.service.UserService;
+import com.gdn.onestop.service.exception.InvalidRequestException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
@@ -86,7 +87,8 @@ public class GroupController {
             @RequestParam(value = "after_time", required = false) Long afterTime,
             @RequestParam(value = "before_time", required = false) Long beforeTime,
             @RequestParam(value = "size") Integer size){
-
+        if(afterTime == null ^ beforeTime == null)
+            throw new InvalidRequestException("required parameter either after_time or before_time");
         return ResponseHelper.isOk(
                 (afterTime != null) ?
                     groupService.getGroupChatAfterTime(userService.getUserBySession(), groupId, new Date(afterTime), size) :
