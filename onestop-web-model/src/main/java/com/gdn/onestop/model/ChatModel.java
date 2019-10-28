@@ -1,6 +1,8 @@
 package com.gdn.onestop.model;
 
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.gdn.onestop.util.DateConverterUtil;
 import lombok.Builder;
 import lombok.Data;
 
@@ -16,6 +18,7 @@ public class ChatModel {
 
     String text;
 
+    @JsonSerialize(converter = DateConverterUtil.class)
     Date createdAt;
 
     Boolean isReply = false;
@@ -23,6 +26,8 @@ public class ChatModel {
     String repliedText;
 
     Boolean isMeeting = false;
+
+    @JsonSerialize(converter = DateConverterUtil.class)
     Date meetingDate;
 
 }
