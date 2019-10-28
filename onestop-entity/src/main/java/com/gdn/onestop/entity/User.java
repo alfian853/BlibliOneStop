@@ -11,6 +11,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.security.Principal;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
@@ -19,8 +20,8 @@ import java.util.LinkedList;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-@Document("users")
-public class User implements UserDetails {
+@Document
+public class User implements UserDetails, Principal {
 
     @Id
     String id;
@@ -30,14 +31,14 @@ public class User implements UserDetails {
     String password;
 
     // game
-    Integer likesFromPosting;
-    Integer likesFromComment;
-    Integer readedBooks;
-    Integer listenedAudios;
-    Integer level;
-    Integer experience;
+    Integer likesFromPosting = 0;
+    Integer likesFromComment = 0;
+    Integer readedBooks = 0;
+    Integer listenedAudios = 0;
+    Integer level = 0;
+    Integer experience = 0;
 
-    private boolean isAdmin = false;
+    Boolean isAdmin = false;
 
     @Transient
     private boolean enabled = true;
@@ -65,4 +66,10 @@ public class User implements UserDetails {
         }
         else return DEFAULT_AUTHORITIES;
     }
+
+    @Override
+    public String getName() {
+        return username;
+    }
+
 }

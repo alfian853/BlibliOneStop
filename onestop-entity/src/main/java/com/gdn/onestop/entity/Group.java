@@ -14,14 +14,17 @@ import java.util.List;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-@Document("groups")
+@Document("group")
 public class Group {
 
     @Id
     String id;
     String name;
+    String groupCode;
 
     GroupType type;
 
     List<String> members;
+
+
 }

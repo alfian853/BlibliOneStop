@@ -2,14 +2,16 @@ package com.gdn.onestop.web.controller;
 
 import com.gdn.onestop.entity.User;
 import com.gdn.onestop.request.LoginRequest;
+import com.gdn.onestop.request.UserRegisterRequest;
 import com.gdn.onestop.response.LoginResponse;
+import com.gdn.onestop.response.Response;
+import com.gdn.onestop.response.ResponseHelper;
+import com.gdn.onestop.service.UserService;
 import com.gdn.onestop.service.exception.InvalidRequestException;
-import com.gdn.onestop.service.impl.MongoUserDetailsService;
+import com.gdn.onestop.service.impl.OsUserDetailsService;
 import com.gdn.onestop.web.config.jwt.JwtTokenProvider;
-import org.omg.CORBA.DynAnyPackage.Invalid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -27,11 +29,14 @@ public class AuthController {
     JwtTokenProvider jwtTokenProvider;
 
     @Autowired
-    MongoUserDetailsService userService;
+    OsUserDetailsService userDetailService;
+
+    @Autowired
+    UserService userService;
 
     @PostMapping("/login")
-    public LoginResponse login(@RequestBody LoginRequest data) {
-        User user = userService.loadUserByUsername(data.getUsername());
+    public Response<LoginResponse> login(@RequestBody LoginRequest data) {
+        User user = userDetailService.loadUserByUsername(data.getUsername());
         System.out.println(data);
         try {
             String username = user.getUsername();
@@ -43,9 +48,16 @@ public class AuthController {
             response.setUsername(username);
             response.setToken(token);
 
-            return response;
+            return ResponseHelper.isOk(response);
         } catch (AuthenticationException e) {
             throw new InvalidRequestException("Invalid username or password!");
         }
+    }
+
+    @PostMapping("/register")
+    public Response<Boolean> register(@RequestBody UserRegisterRequest request){
+        return ResponseHelper.isOk(
+                userService.createUser(request)
+        );
     }
 }

@@ -3,12 +3,10 @@ package com.gdn.onestop.web.controller;
 import com.gdn.onestop.dto.CommentDto;
 import com.gdn.onestop.dto.IdeaPostDto;
 import com.gdn.onestop.entity.IdeaComment;
-import com.gdn.onestop.entity.IdeaPost;
 import com.gdn.onestop.entity.User;
 import com.gdn.onestop.repository.UserRepository;
 import com.gdn.onestop.request.CommentRequest;
 import com.gdn.onestop.request.IdeationRequest;
-import com.gdn.onestop.response.CommentPostResponse;
 import com.gdn.onestop.response.Response;
 import com.gdn.onestop.response.ResponseHelper;
 import com.gdn.onestop.service.IdeationService;
@@ -19,7 +17,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-import javax.validation.constraints.Min;
 import java.util.List;
 import java.util.Map;
 
@@ -82,6 +79,11 @@ public class IdeationController {
             @RequestParam(value = "item_per_page", defaultValue = "5") Integer itemPerPage){
 
         return ResponseHelper.isOk(ideationService.getComments(id, page, itemPerPage));
+    }
+
+    @GetMapping("/testing")
+    public String getTest(){
+        return "eurekaaa";
     }
 
     @PostMapping("/create-user")
