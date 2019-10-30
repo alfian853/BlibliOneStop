@@ -1,5 +1,7 @@
 package com.gdn.onestop.web.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gdn.onestop.dto.UserGroupDto;
 import com.gdn.onestop.entity.User;
@@ -10,18 +12,20 @@ import com.gdn.onestop.request.CreateGroupRequest;
 import com.gdn.onestop.response.Response;
 import com.gdn.onestop.response.ResponseHelper;
 import com.gdn.onestop.service.GroupService;
+import com.gdn.onestop.service.MessagingService;
 import com.gdn.onestop.service.UserService;
 import com.gdn.onestop.service.exception.InvalidRequestException;
+import com.google.firebase.messaging.FirebaseMessaging;
+import com.google.firebase.messaging.FirebaseMessagingException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
 
-import java.io.IOException;
 import java.security.Principal;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 @RestController
 @RequestMapping("/group")
@@ -34,11 +38,17 @@ public class GroupController {
     @Autowired
     UserService userService;
 
+    @Qualifier("objectMapperIgnoreNull")
     @Autowired
     ObjectMapper objectMapper;
 
     @Autowired
     SimpMessagingTemplate template;
+
+    @Autowired
+    MessagingService messagingService;
+
+    private TypeReference<Map<String,String>> mapStringStringType = new TypeReference<Map<String,String>>(){};
 
     @PostMapping
     Response<GroupModel> createGroup(@RequestBody CreateGroupRequest request){
@@ -74,9 +84,23 @@ public class GroupController {
         return ResponseHelper.isOk(true);
     }
 
+    @PostMapping("/{groupId}/chat")
+    Response<ChatModel> pushGroupChat(@PathVariable("groupId") String groupId,@RequestBody ChatSendRequest request){
+        ChatModel chatModel = groupService.addChat(userService.getUserBySession(), groupId, request);
+        Map<String,String> data = objectMapper.convertValue(chatModel, mapStringStringType);
+        data.put("groupId",groupId);
 
+        messagingService.pushMessageToFirebase("/topics/"+groupId, data);
+
+        return ResponseHelper.isOk(chatModel);
+    }
+
+
+    /**
+     * Unused class/function, for archive purpose
+     */
     @MessageMapping("/chat")
-    void addGroupPost(Principal principal, @Payload ChatSendRequest request) throws IOException {
+    void addGroupPost(Principal principal, @Payload ChatSendRequest request) {
         ChatModel chat = groupService.addChat((User)principal, request.getGroupId(), request);
         template.convertAndSend("/subscribe/chat/"+request.getGroupId(), chat);
     }
@@ -94,6 +118,44 @@ public class GroupController {
                     groupService.getGroupChatAfterTime(userService.getUserBySession(), groupId, new Date(afterTime), size) :
                     groupService.getGroupChatBeforeTime(userService.getUserBySession(), groupId, new Date(beforeTime), size)
         );
+    }
+
+    @PostMapping("/subscribe")
+    Response<Boolean> subcribeGroups(@RequestParam("token") String token){
+
+        UserGroupDto userGroup = groupService.getGroupData(userService.getUserBySession());
+        userGroup.getGuilds().forEach(guild -> {
+            try {
+                FirebaseMessaging.getInstance().subscribeToTopic(
+                        Collections.singletonList(token), "/topics/"+guild.getId()
+                );
+                System.out.println("subscribe to topic "+guild.getId());
+            } catch (FirebaseMessagingException e) {
+                e.printStackTrace();
+            }
+        });
+        userGroup.getSquads().forEach(guild -> {
+            try {
+                FirebaseMessaging.getInstance().subscribeToTopic(
+                        Collections.singletonList(token), "/topics/"+guild.getId()
+                );
+                System.out.println("subscribe to topic "+guild.getId());
+            } catch (FirebaseMessagingException e) {
+                e.printStackTrace();
+            }
+        });
+        userGroup.getTribes().forEach(guild -> {
+            try {
+                FirebaseMessaging.getInstance().subscribeToTopic(
+                        Collections.singletonList(token), "/topics/"+guild.getId()
+                );
+                System.out.println("subscribe to topic "+guild.getId());
+            } catch (FirebaseMessagingException e) {
+                e.printStackTrace();
+            }
+        });
+
+        return ResponseHelper.isOk(true);
     }
 
 }
