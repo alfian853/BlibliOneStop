@@ -124,6 +124,7 @@ public class GroupServiceImpl implements GroupService {
                 .isReply(request.getIsReply())
                 .repliedText(request.getRepliedText())
                 .repliedId(request.getRepliedId())
+                .repliedUsername(request.getRepliedUsername())
                 .meetingDate(request.getMeetingDate())
                 .build();
 

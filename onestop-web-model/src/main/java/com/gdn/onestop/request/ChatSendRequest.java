@@ -12,6 +12,7 @@ public class ChatSendRequest {
     Boolean isReply = false;
     String repliedText;
     String repliedId;
+    String repliedUsername;
 
     Boolean isMeeting = false;
     Date meetingDate;

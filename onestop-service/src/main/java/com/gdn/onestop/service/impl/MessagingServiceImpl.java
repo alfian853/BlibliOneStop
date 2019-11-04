@@ -8,7 +8,6 @@ import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 import java.util.Map;
-import java.util.concurrent.ExecutionException;
 
 @Service
 public class MessagingServiceImpl implements MessagingService {
@@ -24,6 +23,5 @@ public class MessagingServiceImpl implements MessagingService {
                 .putAllData(data)
                 .build();
             FirebaseMessaging.getInstance().sendAsync(message);
-
     }
 }
