@@ -1,6 +1,5 @@
 package com.gdn.onestop.web.controller;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gdn.onestop.dto.UserGroupDto;
@@ -25,7 +24,10 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
-import java.util.*;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/group")
@@ -115,8 +117,8 @@ public class GroupController {
             throw new InvalidRequestException("required parameter either after_time or before_time");
         return ResponseHelper.isOk(
                 (afterTime != null) ?
-                    groupService.getGroupChatAfterTime(userService.getUserBySession(), groupId, new Date(afterTime), size) :
-                    groupService.getGroupChatBeforeTime(userService.getUserBySession(), groupId, new Date(beforeTime), size)
+                        groupService.getGroupChatAfterTime(userService.getUserBySession(), groupId, new Date(afterTime), size) :
+                        groupService.getGroupChatBeforeTime(userService.getUserBySession(), groupId, new Date(beforeTime), size)
         );
     }
 
@@ -125,34 +127,23 @@ public class GroupController {
 
         UserGroupDto userGroup = groupService.getGroupData(userService.getUserBySession());
         userGroup.getGuilds().forEach(guild -> {
-            try {
-                FirebaseMessaging.getInstance().subscribeToTopic(
-                        Collections.singletonList(token), "/topics/"+guild.getId()
-                );
-                System.out.println("subscribe to topic "+guild.getId());
-            } catch (FirebaseMessagingException e) {
-                e.printStackTrace();
-            }
+            FirebaseMessaging.getInstance().subscribeToTopicAsync(
+                    Collections.singletonList(token), "/topics/"+guild.getId()
+            );
+            System.out.println("subscribe to topic "+guild.getId());
+
         });
         userGroup.getSquads().forEach(guild -> {
-            try {
-                FirebaseMessaging.getInstance().subscribeToTopic(
-                        Collections.singletonList(token), "/topics/"+guild.getId()
-                );
-                System.out.println("subscribe to topic "+guild.getId());
-            } catch (FirebaseMessagingException e) {
-                e.printStackTrace();
-            }
+            FirebaseMessaging.getInstance().subscribeToTopicAsync(
+                    Collections.singletonList(token), "/topics/"+guild.getId()
+            );
+            System.out.println("subscribe to topic "+guild.getId());
         });
+
         userGroup.getTribes().forEach(guild -> {
-            try {
-                FirebaseMessaging.getInstance().subscribeToTopic(
-                        Collections.singletonList(token), "/topics/"+guild.getId()
-                );
-                System.out.println("subscribe to topic "+guild.getId());
-            } catch (FirebaseMessagingException e) {
-                e.printStackTrace();
-            }
+            FirebaseMessaging.getInstance().subscribeToTopicAsync(
+                    Collections.singletonList(token), "/topics/"+guild.getId()
+            );
         });
 
         return ResponseHelper.isOk(true);

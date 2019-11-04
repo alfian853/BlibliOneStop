@@ -24,6 +24,7 @@ public class ChatModel {
     Boolean isReply = false;
     String repliedId;
     String repliedText;
+    String repliedUsername;
 
     Boolean isMeeting = false;
 

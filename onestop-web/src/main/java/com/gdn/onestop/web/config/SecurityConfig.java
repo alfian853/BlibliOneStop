@@ -81,9 +81,17 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .and()
                 .exceptionHandling().authenticationEntryPoint((httpServletRequest, httpServletResponse, e) -> {
                     Response response = new Response();
-                    response.setStatus("Forbidden");
-                    response.setCode(401);
+                    response.setStatus("Unauthorized");
+                    response.setCode(200);
                     httpServletResponse.getWriter().write(objectMapper.writeValueAsString(response));
+                    httpServletResponse.setStatus(200);
+                    httpServletResponse.setHeader("content-type","application/json");
+                }).accessDeniedHandler((httpServletRequest, httpServletResponse, e) -> {
+                    Response response = new Response();
+                    response.setStatus("Forbidden");
+                    response.setCode(403);
+                    httpServletResponse.getWriter().write(objectMapper.writeValueAsString(response));
+                    httpServletResponse.setStatus(403);
                     httpServletResponse.setHeader("content-type","application/json");
                 })
                 .and()
