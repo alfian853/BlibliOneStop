@@ -16,10 +16,10 @@ import java.util.Date;
 
 @Component
 public class JwtTokenProvider {
-    @Value("${apix.security.secret-key}")
+    @Value("${app.security.secret-key}")
     private String secretKey = "secret";
 
-    @Value("${apix.security.token.expire-length}")
+    @Value("${app.security.token.expire-length}")
     private long validityInMilliseconds = 36000000; // 1 hour
 
     @Autowired
