@@ -6,8 +6,11 @@ import com.gdn.onestop.dto.UserGroupDto;
 import com.gdn.onestop.entity.User;
 import com.gdn.onestop.model.ChatModel;
 import com.gdn.onestop.model.GroupModel;
+import com.gdn.onestop.model.MeetingModel;
 import com.gdn.onestop.request.ChatSendRequest;
 import com.gdn.onestop.request.CreateGroupRequest;
+import com.gdn.onestop.request.PostNoteRequest;
+import com.gdn.onestop.response.MeetingNoteUpdateResponse;
 import com.gdn.onestop.response.Response;
 import com.gdn.onestop.response.ResponseHelper;
 import com.gdn.onestop.service.GroupService;
@@ -15,7 +18,6 @@ import com.gdn.onestop.service.MessagingService;
 import com.gdn.onestop.service.UserService;
 import com.gdn.onestop.service.exception.InvalidRequestException;
 import com.google.firebase.messaging.FirebaseMessaging;
-import com.google.firebase.messaging.FirebaseMessagingException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.messaging.handler.annotation.MessageMapping;
@@ -147,6 +149,32 @@ public class GroupController {
         });
 
         return ResponseHelper.isOk(true);
+    }
+
+    @GetMapping("/{groupId}/meeting")
+    Response<List<MeetingModel>> getMeetingListData(@PathVariable("groupId") String groupId){
+        return ResponseHelper.isOk(
+                groupService.getMeetingListData(userService.getUserBySession(), groupId)
+        );
+    }
+
+    @PostMapping("/{groupId}/meeting/note")
+    Response<MeetingNoteUpdateResponse> updateMeetingNote(
+            @PathVariable("groupId") String groupId,
+            @RequestBody PostNoteRequest request){
+        return ResponseHelper.isOk(
+            groupService.postMeetingNote(userService.getUserBySession(), groupId, request)
+        );
+    }
+
+    @GetMapping("/{groupId}/meeting/{meetingNo}")
+    Response<MeetingModel> getMeetingData(
+            @PathVariable("groupId") String groupId,
+            @PathVariable("meetingNo") Integer meetingNo){
+
+        return ResponseHelper.isOk(
+            groupService.getMeetingData(userService.getUserBySession(), groupId, meetingNo)
+        );
     }
 
 }

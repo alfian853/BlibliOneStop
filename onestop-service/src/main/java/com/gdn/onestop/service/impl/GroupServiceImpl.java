@@ -5,9 +5,12 @@ import com.gdn.onestop.entity.*;
 import com.gdn.onestop.model.ChatModel;
 import com.gdn.onestop.model.GroupModel;
 import com.gdn.onestop.model.GroupType;
+import com.gdn.onestop.model.MeetingModel;
 import com.gdn.onestop.repository.*;
 import com.gdn.onestop.request.CreateGroupRequest;
 import com.gdn.onestop.request.ChatSendRequest;
+import com.gdn.onestop.request.PostNoteRequest;
+import com.gdn.onestop.response.MeetingNoteUpdateResponse;
 import com.gdn.onestop.service.GroupService;
 import com.gdn.onestop.service.exception.InvalidRequestException;
 import com.gdn.onestop.service.exception.NotFoundException;
@@ -25,6 +28,8 @@ public class GroupServiceImpl implements GroupService {
     @Autowired
     private UserGroupRepository userGroupRepository;
 
+    @Autowired
+    private MeetingRepository meetingRepository;
 
     private UserGroup getUserGroupByUserId(String userId){
         return userGroupRepository.findById(userId).orElseGet(()->{
@@ -37,6 +42,16 @@ public class GroupServiceImpl implements GroupService {
             userGroupRepository.save(ug);
             return ug;
         });
+    }
+
+    private GroupMeeting getOrCreateNewGroupMeeting(String groupId){
+        GroupMeeting groupMeeting = meetingRepository.findGroupMeetingById(groupId);
+        if(groupMeeting == null){
+            groupMeeting = new GroupMeeting();
+            groupMeeting.setId(groupId);
+        }
+
+        return groupMeeting;
     }
 
     private GroupModel groupToGroupModel(Group group){
@@ -129,6 +144,22 @@ public class GroupServiceImpl implements GroupService {
                 .build();
 
         groupRepository.addChat(groupId, chat);
+
+        if(chat.getIsMeeting()){
+            GroupMeeting meeting = getOrCreateNewGroupMeeting(groupId);
+            List<MeetingModel> meetingList = meeting.getOrCreateMeetingList();
+            int meetingCount = meetingList.size();
+            MeetingModel meetingModel = MeetingModel.builder()
+                    .id(chat.getId())
+                    .meetingNumber(meetingCount+1)
+                    .note("")
+                    .lastUpdate(chat.getCreatedAt())
+                    .meetingDate(chat.getCreatedAt())
+                    .build();
+            meetingList.add(meetingModel);
+
+            meetingRepository.save(meeting);
+        }
 
         return chat;
     }
@@ -232,6 +263,61 @@ public class GroupServiceImpl implements GroupService {
         }
 
         return groupList.stream().anyMatch(_groupId -> _groupId.equals(groupId));
+    }
+
+    @Override
+    public List<MeetingModel> getMeetingListData(User user, String groupId) {
+        checkMemberValidity(user, groupId);
+
+        return getOrCreateNewGroupMeeting(groupId).getOrCreateMeetingList();
+    }
+
+    @Override
+    public MeetingModel getMeetingData(User user, String groupId, Integer meetingNo) {
+        checkMemberValidity(user, groupId);
+        List<MeetingModel> meetingList = getOrCreateNewGroupMeeting(groupId).getOrCreateMeetingList();
+        if(meetingList.size() < meetingNo){
+            throw new NotFoundException("meeting data not found!");
+        }
+
+        return meetingList.get(meetingNo-1);
+    }
+
+    @Override
+    public MeetingNoteUpdateResponse postMeetingNote(
+            User user, String groupId,
+            PostNoteRequest request) {
+        checkMemberValidity(user, groupId);
+
+        Date requestLastUpdate = new Date(request.getLastUpdate());
+
+        GroupMeeting groupMeeting = getOrCreateNewGroupMeeting(groupId);
+        if(request.getMeetingNumber() > groupMeeting.getOrCreateMeetingList().size()){
+            throw new NotFoundException("Meeting data not found!");
+        }
+
+        MeetingModel meetingModel = groupMeeting.getMeetings().get(request.getMeetingNumber()-1);
+
+        MeetingNoteUpdateResponse response = new MeetingNoteUpdateResponse();
+
+        if(requestLastUpdate.before(meetingModel.getLastUpdate())){
+            response.setIsConflict(true);
+            response.setCurrentText(meetingModel.getNote());
+            response.setCurrentLastUpdate(meetingModel.getLastUpdate().getTime());
+        }
+        else{
+            response.setIsConflict(false);
+            Date newLastUpdate = new Date();
+            meetingModel.setLastUpdate(newLastUpdate);
+            meetingModel.setNote(request.getNote());
+            response.setCurrentLastUpdate(newLastUpdate.getTime());
+
+            groupMeeting.getMeetings().set(request.getMeetingNumber()-1, meetingModel);
+
+            meetingRepository.save(groupMeeting);
+        }
+
+        return response;
     }
 
     private void checkMemberValidity(User user, String groupId){
