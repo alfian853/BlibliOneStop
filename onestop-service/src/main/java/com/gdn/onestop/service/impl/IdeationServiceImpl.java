@@ -73,14 +73,12 @@ public class IdeationServiceImpl implements IdeationService {
 
     @Override
     public List<IdeaPostDto> getIdeas(int page, int itemPerPage) {
-        String username = userService.getUserBySession().getUsername();
         Page<IdeaPost> pageIdea = ideationRepository.findByQuery(
                 AdvancedQuery.builder()
                         .direction(Sort.Direction.DESC)
                         .sortBy(IdeaEntitiyField.CREATED_AT)
                         .page(page)
                         .size(itemPerPage)
-                        .search(username)
                         .build()
         );
 

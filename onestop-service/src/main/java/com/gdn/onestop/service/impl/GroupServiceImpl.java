@@ -143,7 +143,6 @@ public class GroupServiceImpl implements GroupService {
                 .meetingDate(request.getMeetingDate())
                 .build();
 
-        groupRepository.addChat(groupId, chat);
 
         if(chat.getIsMeeting()){
             GroupMeeting meeting = getOrCreateNewGroupMeeting(groupId);
@@ -159,7 +158,9 @@ public class GroupServiceImpl implements GroupService {
             meetingList.add(meetingModel);
 
             meetingRepository.save(meeting);
+            chat.setMeetingNo(meetingList.size());
         }
+        groupRepository.addChat(groupId, chat);
 
         return chat;
     }
