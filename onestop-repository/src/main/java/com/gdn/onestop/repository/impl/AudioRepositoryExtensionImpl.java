@@ -1,7 +1,7 @@
 package com.gdn.onestop.repository.impl;
 
-import com.gdn.onestop.entity.Book;
-import com.gdn.onestop.repository.BookRepositoryExtension;
+import com.gdn.onestop.entity.Audio;
+import com.gdn.onestop.repository.AudioRepositoryExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -12,10 +12,10 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import java.util.Date;
 import java.util.List;
 
-import static com.gdn.onestop.repository.enums.BookEntityField.CREATED_AT;
+import static com.gdn.onestop.repository.enums.AudioEntityField.CREATED_AT;
 import static org.springframework.data.mongodb.core.aggregation.Aggregation.*;
 
-public class BookRepositoryExtensionImpl implements BookRepositoryExtension {
+public class AudioRepositoryExtensionImpl implements AudioRepositoryExtension {
 
     @Autowired
     MongoTemplate mongoTemplate;
@@ -23,27 +23,27 @@ public class BookRepositoryExtensionImpl implements BookRepositoryExtension {
     @Override
     public Date getLastUpdate() {
 
-        TypedAggregation<Book> agg = newAggregation(Book.class,
+        TypedAggregation<Audio> agg = newAggregation(Audio.class,
                 sort(Sort.Direction.DESC, CREATED_AT.getField()),
                 limit(1)
         );
-        AggregationResults<Book> result = mongoTemplate.aggregate(agg, Book.class);
+        AggregationResults<Audio> result = mongoTemplate.aggregate(agg, Audio.class);
 
-        Book book = result.getUniqueMappedResult();
+        Audio audio = result.getUniqueMappedResult();
 
-        if(book == null){
+        if(audio == null){
             return new Date();
         }
-        return book.getCreatedAt();
+        return audio.getCreatedAt();
     }
 
     @Override
-    public List<Book> getBookAfterTime(Date afterTime) {
-        TypedAggregation<Book> agg = newAggregation(Book.class,
+    public List<Audio> getAudioAfterTime(Date afterTime) {
+        TypedAggregation<Audio> agg = newAggregation(Audio.class,
                 match(Criteria.where(CREATED_AT.getField()).gt(afterTime))
         );
 
-        AggregationResults<Book> result = mongoTemplate.aggregate(agg, Book.class);
+        AggregationResults<Audio> result = mongoTemplate.aggregate(agg, Audio.class);
 
         return result.getMappedResults();
     }
