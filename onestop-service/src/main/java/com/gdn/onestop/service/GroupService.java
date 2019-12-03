@@ -4,8 +4,11 @@ import com.gdn.onestop.dto.UserGroupDto;
 import com.gdn.onestop.model.ChatModel;
 import com.gdn.onestop.entity.User;
 import com.gdn.onestop.model.GroupModel;
+import com.gdn.onestop.model.MeetingModel;
 import com.gdn.onestop.request.CreateGroupRequest;
 import com.gdn.onestop.request.ChatSendRequest;
+import com.gdn.onestop.request.PostNoteRequest;
+import com.gdn.onestop.response.MeetingNoteUpdateResponse;
 
 import java.util.Date;
 import java.util.List;
@@ -28,4 +31,11 @@ public interface GroupService {
     void leaveGroup(User user, String groupId);
 
     boolean isValidMember(User user, String groupId);
+
+    List<MeetingModel> getMeetingListData(User user, String groupId);
+
+    MeetingModel getMeetingData(User user, String groupId, Integer meetingNo);
+
+    MeetingNoteUpdateResponse postMeetingNote(User user, String groupId, PostNoteRequest request);
+
 }

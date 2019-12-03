@@ -1,6 +1,7 @@
 package com.gdn.onestop.model;
 
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.gdn.onestop.util.DateConverterUtil;
 import lombok.Builder;
@@ -10,6 +11,7 @@ import java.util.Date;
 
 @Builder
 @Data
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class ChatModel {
 
     String id;
@@ -30,5 +32,7 @@ public class ChatModel {
 
     @JsonSerialize(converter = DateConverterUtil.class)
     Date meetingDate;
+
+    Integer meetingNo;
 
 }
