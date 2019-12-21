@@ -2,9 +2,11 @@ package com.gdn.onestop.service.impl;
 
 import com.gdn.onestop.entity.Audio;
 import com.gdn.onestop.entity.Book;
+import com.gdn.onestop.entity.User;
 import com.gdn.onestop.repository.AudioRepository;
 import com.gdn.onestop.repository.BookRepository;
 import com.gdn.onestop.service.FileStorageService;
+import com.gdn.onestop.service.GameService;
 import com.gdn.onestop.service.LibraryService;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.pdfbox.pdmodel.PDDocument;
@@ -37,6 +39,9 @@ public class LibraryServiceImpl implements LibraryService {
 
     @Autowired
     AudioRepository audioRepository;
+
+    @Autowired
+    GameService gameService;
 
     @PostConstruct
     public void setLastUpdate() {
@@ -113,6 +118,17 @@ public class LibraryServiceImpl implements LibraryService {
         else{
             return Collections.emptyList();
         }
+    }
+
+    @Override
+    public void setBookFinished(User user, String bookId) {
+        gameService.onBookReadFinished(user, bookId);
+
+    }
+
+    @Override
+    public void setAudioFinished(User user, String audioId) {
+        gameService.onAudioListened(user, audioId);
     }
 
 }

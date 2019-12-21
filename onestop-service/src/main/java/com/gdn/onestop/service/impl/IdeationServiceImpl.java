@@ -4,11 +4,13 @@ import com.gdn.onestop.dto.CommentDto;
 import com.gdn.onestop.dto.IdeaPostDto;
 import com.gdn.onestop.entity.IdeaComment;
 import com.gdn.onestop.entity.IdeaPost;
+import com.gdn.onestop.entity.User;
 import com.gdn.onestop.repository.AdvancedQuery;
 import com.gdn.onestop.repository.IdeaCommentRepository;
 import com.gdn.onestop.repository.IdeationRepository;
 import com.gdn.onestop.repository.enums.IdeaEntitiyField;
 import com.gdn.onestop.request.IdeationRequest;
+import com.gdn.onestop.service.GameService;
 import com.gdn.onestop.service.IdeationService;
 import com.gdn.onestop.service.UserService;
 import com.gdn.onestop.service.exception.NotFoundException;
@@ -35,8 +37,11 @@ public class IdeationServiceImpl implements IdeationService {
     @Autowired
     UserService userService;
 
-    private IdeaPostDto mapPostToDto(IdeaPost post){
-        String username = userService.getUserBySession().getUsername();
+    @Autowired
+    GameService gameService;
+
+    private IdeaPostDto mapPostToDto(User user, IdeaPost post){
+        String username = user.getUsername();
         int stat = 0;
         Boolean isVoteUp = post.getVoter().getOrDefault(username,null);
         if(isVoteUp != null){
@@ -57,8 +62,8 @@ public class IdeationServiceImpl implements IdeationService {
     }
 
     @Override
-    public IdeaPostDto addIdea(IdeationRequest request) {
-        String username = userService.getUserBySession().getUsername();
+    public IdeaPostDto addIdea(User user, IdeationRequest request) {
+        String username = user.getUsername();
 
         IdeaPost post = new IdeaPost();
         post.setUpVoteCount(0);
@@ -68,23 +73,24 @@ public class IdeationServiceImpl implements IdeationService {
         post.setUsername(username);
         ideationRepository.save(post);
         commentRepository.save(IdeaComment.builder().id(post.getId()).comments(new LinkedList<>()).build());
-        return mapPostToDto(post);
+
+        gameService.onIdeationPosted(user);
+
+        return mapPostToDto(user, post);
     }
 
     @Override
-    public List<IdeaPostDto> getIdeas(int page, int itemPerPage) {
+    public List<IdeaPostDto> getIdeas(User user, int page, int itemPerPage) {
         Page<IdeaPost> pageIdea = ideationRepository.findByQuery(
-                AdvancedQuery.builder()
-                        .direction(Sort.Direction.DESC)
-                        .sortBy(IdeaEntitiyField.CREATED_AT)
+                AdvancedQuery.create()
                         .page(page)
                         .size(itemPerPage)
-                        .build()
+                        .addSort(IdeaEntitiyField.CREATED_AT, Sort.Direction.DESC)
         );
 
         return pageIdea.getContent()
                 .stream()
-                .map(this::mapPostToDto)
+                .map(post -> this.mapPostToDto(user, post))
                 .collect(Collectors.toList());
     }
 
@@ -98,8 +104,8 @@ public class IdeationServiceImpl implements IdeationService {
     }
 
     @Override
-    public CommentDto addComment(String id, String comment) {
-        String username = userService.getUserBySession().getUsername();
+    public CommentDto addComment(User user, String id, String comment) {
+        String username = user.getUsername();
 
         IdeaPost ideaPost = ideationRepository.findById(id).orElseThrow(NotFoundException::new);
         IdeaComment ideaComment = commentRepository.findById(id)
@@ -115,6 +121,9 @@ public class IdeationServiceImpl implements IdeationService {
 
         ideationRepository.save(ideaPost);
         commentRepository.save(ideaComment);
+
+        gameService.onIdeationCommented(user);
+
         return mapToCommentDto(id, commentUnit);
     }
 
@@ -124,10 +133,10 @@ public class IdeationServiceImpl implements IdeationService {
     }
 
     @Override
-    public boolean voteIdea(String id, boolean isVoteUp) {
+    public boolean voteIdea(User user, String id, boolean isVoteUp) {
         IdeaPost ideaPost = ideationRepository.findById(id).orElseThrow(NotFoundException::new);
 
-        String username = userService.getUserBySession().getUsername();
+        String username = user.getUsername();
 
         if(ideaPost.getVoter().containsKey(username)){
             boolean isUpVoteBefore = ideaPost.getVoter().get(username);
@@ -164,5 +173,20 @@ public class IdeationServiceImpl implements IdeationService {
     public Map<String, Boolean> getIdeaVoter(String id) {
         IdeaPost ideaPost = ideationRepository.findById(id).orElseThrow(NotFoundException::new);
         return ideaPost.getVoter();
+    }
+
+    public List<IdeaPostDto> getTopPostByUsername(User user, String targetUsername) {
+        Page<IdeaPost> pageIdea = ideationRepository.findByQuery(
+                AdvancedQuery.create()
+                        .page(0)
+                        .size(10)
+                        .addSearch(IdeaEntitiyField.USERNAME, targetUsername)
+                        .addSort(IdeaEntitiyField.UP_VOTE, Sort.Direction.DESC)
+        );
+
+        return pageIdea.getContent()
+                .stream()
+                .map(post -> this.mapPostToDto(user, post))
+                .collect(Collectors.toList());
     }
 }

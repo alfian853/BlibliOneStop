@@ -5,9 +5,11 @@ import com.gdn.onestop.entity.Book;
 import com.gdn.onestop.response.Response;
 import com.gdn.onestop.response.ResponseHelper;
 import com.gdn.onestop.service.LibraryService;
+import com.gdn.onestop.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+
 import java.util.List;
 
 
@@ -16,6 +18,9 @@ public class LibraryController {
 
     @Autowired
     LibraryService libraryService;
+
+    @Autowired
+    UserService userService;
 
     @PostMapping("/book/upload")
     Response<Boolean> uploadBook(
@@ -56,6 +61,25 @@ public class LibraryController {
         );
     }
 
+    @PostMapping("/book/{id}/finish")
+    Response<Boolean> finishBook(@PathVariable("id") String bookId){
+        libraryService.setBookFinished(
+                userService.getUserBySession(),
+                bookId
+        );
+
+        return ResponseHelper.isOk(true);
+    }
+
+    @PostMapping("/audio/{id}/finish")
+    Response<Boolean> finishAudio(@PathVariable("id") String audioId){
+        libraryService.setAudioFinished(
+                userService.getUserBySession(),
+                audioId
+        );
+
+        return ResponseHelper.isOk(true);
+    }
 
 
 }

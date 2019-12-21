@@ -5,13 +5,15 @@ import com.gdn.onestop.repository.UserRepository;
 import com.gdn.onestop.request.UserRegisterRequest;
 import com.gdn.onestop.service.UserService;
 import com.gdn.onestop.service.exception.InvalidRequestException;
-import org.omg.CORBA.DynAnyPackage.Invalid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.util.Optional;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -25,11 +27,6 @@ public class UserServiceImpl implements UserService {
     public User getUserBySession() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         return (User) auth.getPrincipal();
-//        User user = new User();
-//        user.setUsername("user");
-//        user.setId("5d78f00d1293690d6d2dd5ee");
-
-//        return user;
     }
 
     @Override
@@ -46,5 +43,11 @@ public class UserServiceImpl implements UserService {
         userRepository.save(user);
 
         return true;
+    }
+
+    @Override
+    public User loadUserByUsername(String username) throws UsernameNotFoundException {
+        return Optional.ofNullable(userRepository.findByUsername(username))
+                .orElseThrow(() -> new InvalidRequestException("Wrong username/password"));
     }
 }

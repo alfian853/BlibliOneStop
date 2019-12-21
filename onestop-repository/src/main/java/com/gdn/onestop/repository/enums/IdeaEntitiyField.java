@@ -1,6 +1,5 @@
 package com.gdn.onestop.repository.enums;
 
-import lombok.Data;
 import lombok.Getter;
 
 import java.util.Arrays;
@@ -9,7 +8,8 @@ import java.util.List;
 public enum IdeaEntitiyField implements MongoEntityField {
     USERNAME("username", true, true),
     CREATED_AT("createdAt", false, true),
-    COMMENT("comments",false,false);
+    COMMENT("comments",false,false),
+    UP_VOTE("upVoteCount",false,true);
 
     @Getter
     private String field;

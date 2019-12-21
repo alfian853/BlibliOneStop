@@ -2,6 +2,7 @@ package com.gdn.onestop.web.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gdn.onestop.response.Response;
+import com.gdn.onestop.service.UserService;
 import com.gdn.onestop.service.impl.OsUserDetailsService;
 import com.gdn.onestop.web.config.filter.CorsFilter;
 import com.gdn.onestop.web.config.jwt.JwtConfigurer;
@@ -28,7 +29,7 @@ import org.springframework.security.web.access.channel.ChannelProcessingFilter;
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Autowired
-    OsUserDetailsService userDetailsService;
+    UserService userService;
 
     @Autowired
     JwtTokenProvider jwtTokenProvider;
@@ -64,7 +65,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                         "/swagger-resources/**",
                         "/webjars/**",
                         "/public/**",
-                        "/download/**")
+                        "/download/**",
+                        "/book/**",
+                        "/audio/**")
                 .permitAll()
                 .anyRequest()
 //                .permitAll()

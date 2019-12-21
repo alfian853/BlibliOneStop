@@ -10,6 +10,7 @@ import com.gdn.onestop.request.IdeationRequest;
 import com.gdn.onestop.response.Response;
 import com.gdn.onestop.response.ResponseHelper;
 import com.gdn.onestop.service.IdeationService;
+import com.gdn.onestop.service.UserService;
 import com.gdn.onestop.service.exception.InvalidRequestException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -30,12 +31,15 @@ public class IdeationController {
     @Autowired
     UserRepository userRepository;
 
+    @Autowired
+    UserService userService;
+
     @PostMapping
     public Response<IdeaPostDto> postIdea(@Valid @RequestBody IdeationRequest request){
         return Response.<IdeaPostDto>builder()
                 .status("success")
                 .code(200)
-                .data(ideationService.addIdea(request))
+                .data(ideationService.addIdea(userService.getUserBySession(), request))
                 .build();
     }
 
@@ -48,14 +52,14 @@ public class IdeationController {
             if(page < 1)throw new InvalidRequestException("min page is 1");
             page--;
         return ResponseHelper.isOk(
-                ideationService.getIdeas(page, itemPerPage)
+                ideationService.getIdeas(userService.getUserBySession(), page, itemPerPage)
         );
     }
 
 
     @PostMapping("/{id}/vote")
     public Response<Boolean> voteIdea(@PathVariable("id") String id, @RequestParam("vote_up") Boolean isVoteUp){
-        return ResponseHelper.isOk(ideationService.voteIdea(id, isVoteUp));
+        return ResponseHelper.isOk(ideationService.voteIdea(userService.getUserBySession(), id, isVoteUp));
     }
 
     @GetMapping("/{id}/vote")
@@ -68,7 +72,7 @@ public class IdeationController {
             @PathVariable("id") String id,
             @Valid @RequestBody CommentRequest request){
         return ResponseHelper.isOk(
-                ideationService.addComment(id, request.getText())
+                ideationService.addComment(userService.getUserBySession(), id, request.getText())
         );
     }
 
@@ -81,22 +85,12 @@ public class IdeationController {
         return ResponseHelper.isOk(ideationService.getComments(id, page, itemPerPage));
     }
 
-    @GetMapping("/testing")
-    public String getTest(){
-        return "eurekaaa";
-    }
-
     @PostMapping("/create-user")
     public String createuser(){
         User user = User.builder()
                 .isAdmin(true)
-                .level(0)
-                .likesFromComment(0)
-                .likesFromPosting(0)
                 .password(passwordEncoder.encode("wkwkwk"))
                 .username("user")
-                .listenedAudios(0)
-                .readedBooks(0)
                 .build();
 
         userRepository.save(user);

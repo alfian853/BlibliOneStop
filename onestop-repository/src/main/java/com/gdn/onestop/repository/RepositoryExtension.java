@@ -24,16 +24,17 @@ public interface RepositoryExtension<ENTITY> {
         Query query = new Query();
 
         List<Criteria> andCriteria = new ArrayList<>();
-        boolean emptyCriteria = true;
-        if(requestQuery.getSearch() != null){
-            getFieldList().forEach(field -> {
-                if(field.isSearchable()){
-                    andCriteria.add(Criteria.where(field.getField())
-                            .regex(requestQuery.getSearch(),"i"));
-                }
-            });
-            emptyCriteria = false;
-        }
+        boolean emptyCriteria = requestQuery.getSearchFields().size() == 0;
+
+        requestQuery.getSearchFields().forEach( searchField -> {
+            if(searchField.isRegex){
+                andCriteria.add(Criteria.where(searchField.getField().getField()).is(searchField.search));
+            }
+            else {
+                andCriteria.add(Criteria.where(searchField.getField().getField())
+                        .regex(searchField.getSearch().toString(), "i"));
+            }
+        });
 
         Criteria orCriteria = new Criteria().orOperator(andCriteria.toArray(new Criteria[0]));
 
@@ -48,13 +49,18 @@ public interface RepositoryExtension<ENTITY> {
         }
         query.with(pageable);
 
-        if(requestQuery.getSortBy() != null){
-            if(!requestQuery.getSortBy().isSortable()){
-                throw new RuntimeException(
-                        "Field "+requestQuery.getSortBy().getField()+" is not sortable"
-                );
+        if(!requestQuery.getSortFields().isEmpty()){
+            AdvancedQuery.SortField sortField = requestQuery.getSortFields().get(0);
+            Sort sort = new Sort(sortField.getDirection(), sortField.field.getField());
+
+            int len = requestQuery.getSortFields().size();
+            if(len > 1){
+                for(int i=1; i < len; ++i){
+                    sortField = requestQuery.getSortFields().get(i);
+                    sort.and(new Sort(sortField.getDirection(), sortField.field.getField()));
+                }
             }
-            Sort sort = new Sort(requestQuery.getDirection(), requestQuery.getSortBy().getField());
+
             query.with(sort);
         }
 

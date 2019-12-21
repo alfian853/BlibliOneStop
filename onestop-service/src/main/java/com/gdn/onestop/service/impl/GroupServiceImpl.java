@@ -11,6 +11,7 @@ import com.gdn.onestop.request.CreateGroupRequest;
 import com.gdn.onestop.request.ChatSendRequest;
 import com.gdn.onestop.request.PostNoteRequest;
 import com.gdn.onestop.response.MeetingNoteUpdateResponse;
+import com.gdn.onestop.service.GameService;
 import com.gdn.onestop.service.GroupService;
 import com.gdn.onestop.service.exception.InvalidRequestException;
 import com.gdn.onestop.service.exception.NotFoundException;
@@ -30,6 +31,9 @@ public class GroupServiceImpl implements GroupService {
 
     @Autowired
     private MeetingRepository meetingRepository;
+
+    @Autowired
+    private GameService gameService;
 
     private UserGroup getUserGroupByUserId(String userId){
         return userGroupRepository.findById(userId).orElseGet(()->{
@@ -316,6 +320,8 @@ public class GroupServiceImpl implements GroupService {
             groupMeeting.getMeetings().set(request.getMeetingNumber()-1, meetingModel);
 
             meetingRepository.save(groupMeeting);
+
+            gameService.onMeetingNoteEdited(user);
         }
 
         return response;

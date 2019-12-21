@@ -30,14 +30,6 @@ public class User implements UserDetails, Principal {
     String username;
     String password;
 
-    // game
-    Integer likesFromPosting = 0;
-    Integer likesFromComment = 0;
-    Integer readedBooks = 0;
-    Integer listenedAudios = 0;
-    Integer level = 0;
-    Integer experience = 0;
-
     Boolean isAdmin = false;
 
     @Transient
