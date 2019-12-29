@@ -3,7 +3,6 @@ package com.gdn.onestop.web.config;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gdn.onestop.response.Response;
 import com.gdn.onestop.service.UserService;
-import com.gdn.onestop.service.impl.OsUserDetailsService;
 import com.gdn.onestop.web.config.filter.CorsFilter;
 import com.gdn.onestop.web.config.jwt.JwtConfigurer;
 import com.gdn.onestop.web.config.jwt.JwtTokenProvider;

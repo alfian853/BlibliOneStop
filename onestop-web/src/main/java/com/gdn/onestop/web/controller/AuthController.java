@@ -8,7 +8,6 @@ import com.gdn.onestop.response.Response;
 import com.gdn.onestop.response.ResponseHelper;
 import com.gdn.onestop.service.UserService;
 import com.gdn.onestop.service.exception.InvalidRequestException;
-import com.gdn.onestop.service.impl.OsUserDetailsService;
 import com.gdn.onestop.web.config.jwt.JwtTokenProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -30,15 +29,12 @@ public class AuthController {
     JwtTokenProvider jwtTokenProvider;
 
     @Autowired
-    OsUserDetailsService userDetailService;
-
-    @Autowired
     UserService userService;
 
     @PostMapping("/login")
     public Response<LoginResponse> login(@RequestBody LoginRequest data) {
         try {
-            User user = userDetailService.loadUserByUsername(data.getUsername());
+            User user = (User) userService.loadUserByUsername(data.getUsername());
 
             String username = user.getUsername();
             authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(username, data.getPassword()));

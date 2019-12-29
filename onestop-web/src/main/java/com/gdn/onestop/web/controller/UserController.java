@@ -8,7 +8,6 @@ import com.gdn.onestop.response.ResponseHelper;
 import com.gdn.onestop.service.GameService;
 import com.gdn.onestop.service.IdeationService;
 import com.gdn.onestop.service.UserService;
-import com.gdn.onestop.service.impl.OsUserDetailsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;

@@ -1,7 +1,8 @@
 package com.gdn.onestop.web.config;
 
+import com.gdn.onestop.entity.User;
 import com.gdn.onestop.service.GroupService;
-import com.gdn.onestop.service.impl.OsUserDetailsService;
+import com.gdn.onestop.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -19,7 +20,7 @@ public class TopicSubscriptionInterceptor implements ChannelInterceptor {
     GroupService groupService;
 
     @Autowired
-    OsUserDetailsService userDetailsService;
+    UserService userService;
 
     @Override
     public Message<?> preSend(Message<?> message, MessageChannel channel) {
@@ -41,7 +42,7 @@ public class TopicSubscriptionInterceptor implements ChannelInterceptor {
         String groupId = topicDestination.substring(16);
 
         return groupService.isValidMember(
-                userDetailsService.loadUserByUsername(principal.getName()),
+                (User) userService.loadUserByUsername(principal.getName()),
                 groupId
         );
     }

@@ -1,6 +1,6 @@
 package com.gdn.onestop.web.config.jwt;
 
-import com.gdn.onestop.service.impl.OsUserDetailsService;
+import com.gdn.onestop.service.UserService;
 import io.jsonwebtoken.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -23,7 +23,7 @@ public class JwtTokenProvider {
     private long validityInMilliseconds = 36000000; // 1 hour
 
     @Autowired
-    private OsUserDetailsService userDetailsService;
+    private UserService userService;
 
     @PostConstruct
     protected void init(){
@@ -45,7 +45,7 @@ public class JwtTokenProvider {
     }
 
     public Authentication getAuthentication(String token) {
-        UserDetails userDetails = this.userDetailsService.loadUserByUsername(getUsername(token));
+        UserDetails userDetails = this.userService.loadUserByUsername(getUsername(token));
         return new UsernamePasswordAuthenticationToken(userDetails, "", userDetails.getAuthorities());
     }
 

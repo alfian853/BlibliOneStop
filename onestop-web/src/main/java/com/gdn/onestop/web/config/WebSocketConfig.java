@@ -1,6 +1,6 @@
 package com.gdn.onestop.web.config;
 
-import com.gdn.onestop.service.impl.OsUserDetailsService;
+import com.gdn.onestop.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.server.ServerHttpRequest;
@@ -23,7 +23,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     TopicSubscriptionInterceptor subscriptionInterceptor;
 
     @Autowired
-    OsUserDetailsService userDetailsService;
+    UserService userService;
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry registry) {
@@ -40,7 +40,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
             protected Principal determineUser(ServerHttpRequest request, WebSocketHandler wsHandler, Map<String, Object> attributes) {
                 Principal principal = super.determineUser(request, wsHandler, attributes);
 
-                return userDetailsService.loadUserByUsername(principal.getName());
+                return (Principal) userService.loadUserByUsername(principal.getName());
 
             }
         });
