@@ -30,6 +30,8 @@ public interface GroupService {
 
     void leaveGroup(User user, String groupId);
 
+    List<String> getMembers(String groupId);
+
     boolean isValidMember(User user, String groupId);
 
     List<MeetingModel> getMeetingListData(User user, String groupId);

@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/auth")
 public class AuthController {
+
     @Autowired
     AuthenticationManager authenticationManager;
 
@@ -36,9 +37,9 @@ public class AuthController {
 
     @PostMapping("/login")
     public Response<LoginResponse> login(@RequestBody LoginRequest data) {
-        User user = userDetailService.loadUserByUsername(data.getUsername());
-        System.out.println(data);
         try {
+            User user = userDetailService.loadUserByUsername(data.getUsername());
+
             String username = user.getUsername();
             authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(username, data.getPassword()));
 

@@ -245,6 +245,10 @@ public class GroupServiceImpl implements GroupService {
         groupRepository.save(group);
     }
 
+    @Override
+    public List<String> getMembers(String groupId) {
+        return groupRepository.findById(groupId).orElseThrow(NotFoundException::new).getMembers();
+    }
 
     @Override
     public boolean isValidMember(User user, String groupId) {

@@ -177,4 +177,9 @@ public class GroupController {
         );
     }
 
+    @GetMapping("/{groupId}/members")
+    Response<List<String>> getMembers(@PathVariable("groupId") String groupId){
+        return ResponseHelper.isOk(groupService.getMembers(groupId));
+    }
+
 }
