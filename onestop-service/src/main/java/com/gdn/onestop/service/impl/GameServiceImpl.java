@@ -37,8 +37,7 @@ public class GameServiceImpl implements GameService {
     public void onBookReadFinished(User user, String bookId) {
         UserGame userGame = getOrCreate(user);
 
-        boolean isFinishedBefore = userGame.getFinishedAudiosId().contains(bookId);
-
+        boolean isFinishedBefore = userGame.getFinishedBooksId().contains(bookId);
         if(!isFinishedBefore){
             userGame.setReadedBooks(userGame.getReadedBooks()+1);
             userGame.increasePoints(GamePoint.READED_BOOK.getPoint());
@@ -52,7 +51,7 @@ public class GameServiceImpl implements GameService {
     public void onAudioListened(User user, String audioId) {
         UserGame userGame = getOrCreate(user);
 
-        boolean isFinishedBefore = userGame.getFinishedBooksId().contains(audioId);
+        boolean isFinishedBefore = userGame.getFinishedAudiosId().contains(audioId);
 
         if(!isFinishedBefore){
             userGame.setListenedAudios(userGame.getListenedAudios()+1);
