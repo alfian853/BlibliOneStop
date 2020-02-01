@@ -75,7 +75,7 @@ public class GroupServiceImpl implements GroupService {
                 .name(request.getName())
                 .type(request.getType())
                 .groupCode(UUID.randomUUID().toString().substring(0,7))
-                .members(Collections.singletonList(user.getId()))
+                .members(Collections.singletonList(user.getUsername()))
                 .build();
 
         groupRepository.save(group);
@@ -157,7 +157,7 @@ public class GroupServiceImpl implements GroupService {
                     .meetingNumber(meetingCount+1)
                     .note("")
                     .lastUpdate(chat.getCreatedAt())
-                    .meetingDate(chat.getCreatedAt())
+                    .meetingDate(chat.getMeetingDate())
                     .build();
             meetingList.add(meetingModel);
 
