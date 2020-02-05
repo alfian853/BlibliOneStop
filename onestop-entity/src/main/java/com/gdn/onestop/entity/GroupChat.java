@@ -1,6 +1,6 @@
 package com.gdn.onestop.entity;
 
-import com.gdn.onestop.model.ChatModel;
+import com.gdn.onestop.model.GroupChatModel;
 import lombok.Data;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -14,6 +14,6 @@ public class GroupChat {
     @Id
     String id;
 
-    List<ChatModel> chats;
+    List<GroupChatModel> chats;
 
 }

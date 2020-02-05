@@ -1,11 +1,11 @@
 package com.gdn.onestop.request;
 
 import lombok.Data;
-
 import java.util.Date;
 
 @Data
-public class ChatSendRequest {
+public class GroupChatSendRequest {
+    String groupId;
 
     String text;
 
@@ -13,4 +13,7 @@ public class ChatSendRequest {
     String repliedText;
     String repliedId;
     String repliedUsername;
+
+    Boolean isMeeting = false;
+    Date meetingDate;
 }

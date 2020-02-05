@@ -12,7 +12,8 @@ import java.util.Date;
 @Builder
 @Data
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class ChatModel {
+public class GroupChatModel {
+
     String id;
 
     String username;
@@ -25,4 +26,13 @@ public class ChatModel {
     Boolean isReply = false;
     String repliedId;
     String repliedText;
+    String repliedUsername;
+
+    Boolean isMeeting = false;
+
+    @JsonSerialize(converter = DateConverterUtil.class)
+    Date meetingDate;
+
+    Integer meetingNo;
+
 }

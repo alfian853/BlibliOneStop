@@ -33,6 +33,7 @@ public class UserController {
         ProfileResponse response = new ProfileResponse();
         UserGame userGame = gameService.getOrCreate((User) userService.loadUserByUsername(username));
 
+        response.setId(userGame.getId());
         response.setIdeationComments(userGame.getIdeationComments());
         response.setIdeationPosts(userGame.getIdeationPosts());
         response.setListenedAudios(userGame.getListenedAudios());

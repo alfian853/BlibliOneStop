@@ -8,6 +8,7 @@ import java.util.List;
 @Data
 public class ProfileResponse {
 
+    String id;
     Integer ideationPosts = 0;
     Integer ideationComments = 0;
     Integer readedBooks = 0;

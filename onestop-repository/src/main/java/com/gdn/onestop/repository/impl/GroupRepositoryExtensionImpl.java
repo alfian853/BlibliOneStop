@@ -1,6 +1,6 @@
 package com.gdn.onestop.repository.impl;
 
-import com.gdn.onestop.model.ChatModel;
+import com.gdn.onestop.model.GroupChatModel;
 import com.gdn.onestop.entity.GroupChat;
 import com.gdn.onestop.repository.GroupRepositoryExtension;
 import com.mongodb.client.result.UpdateResult;
@@ -29,7 +29,7 @@ public class GroupRepositoryExtensionImpl implements GroupRepositoryExtension {
     }
 
     @Override
-    public void addChat(String groupId, ChatModel chat) {
+    public void addChat(String groupId, GroupChatModel chat) {
 
         Update update = new Update();
 
@@ -54,7 +54,7 @@ public class GroupRepositoryExtensionImpl implements GroupRepositoryExtension {
     }
 
     @Override
-    public List<ChatModel> getGroupChatAfterTime(String groupId, Date date, Integer size) {
+    public List<GroupChatModel> getGroupChatAfterTime(String groupId, Date date, Integer size) {
         TypedAggregation<GroupChat> agg = newAggregation(GroupChat.class,
                 match(where("_id").is(groupId)),
                 unwind("$"+CHATS.getField()),
@@ -75,7 +75,7 @@ public class GroupRepositoryExtensionImpl implements GroupRepositoryExtension {
     }
 
     @Override
-    public List<ChatModel> getGroupChatBeforeTime(String groupId, Date date, Integer size) {
+    public List<GroupChatModel> getGroupChatBeforeTime(String groupId, Date date, Integer size) {
         TypedAggregation<GroupChat> agg = newAggregation(GroupChat.class,
                 match(where("_id").is(groupId)),
                 unwind("$"+CHATS.getField()),

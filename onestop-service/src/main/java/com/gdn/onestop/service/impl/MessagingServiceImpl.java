@@ -3,6 +3,7 @@ package com.gdn.onestop.service.impl;
 import com.gdn.onestop.service.MessagingService;
 import com.google.firebase.messaging.AndroidConfig;
 import com.google.firebase.messaging.FirebaseMessaging;
+import com.google.firebase.messaging.FirebaseMessagingException;
 import com.google.firebase.messaging.Message;
 import org.springframework.stereotype.Service;
 
@@ -22,6 +23,11 @@ public class MessagingServiceImpl implements MessagingService {
         Message message = Message.builder().setAndroidConfig(androidConfig).setTopic(topic)
                 .putAllData(data)
                 .build();
-            FirebaseMessaging.getInstance().sendAsync(message);
+        try {
+            FirebaseMessaging.getInstance().send(message);
+
+        } catch (FirebaseMessagingException e) {
+            e.printStackTrace();
+        }
     }
 }

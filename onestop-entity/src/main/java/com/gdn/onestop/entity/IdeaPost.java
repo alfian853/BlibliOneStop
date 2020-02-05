@@ -10,7 +10,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Data
-@Document("idea_posts")
 public class IdeaPost {
 
     @Id

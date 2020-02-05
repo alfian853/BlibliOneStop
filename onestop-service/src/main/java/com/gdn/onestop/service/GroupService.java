@@ -1,12 +1,12 @@
 package com.gdn.onestop.service;
 
 import com.gdn.onestop.dto.UserGroupDto;
-import com.gdn.onestop.model.ChatModel;
+import com.gdn.onestop.model.GroupChatModel;
 import com.gdn.onestop.entity.User;
 import com.gdn.onestop.model.GroupModel;
 import com.gdn.onestop.model.MeetingModel;
 import com.gdn.onestop.request.CreateGroupRequest;
-import com.gdn.onestop.request.ChatSendRequest;
+import com.gdn.onestop.request.GroupChatSendRequest;
 import com.gdn.onestop.request.PostNoteRequest;
 import com.gdn.onestop.response.MeetingNoteUpdateResponse;
 
@@ -18,11 +18,11 @@ public interface GroupService {
     GroupModel createGroup(User user, CreateGroupRequest request);
     UserGroupDto getGroupData(User user);
 
-    ChatModel addChat(User user, String groupId, ChatSendRequest request);
+    GroupChatModel addChat(User user, String groupId, GroupChatSendRequest request);
 
-    List<ChatModel> getGroupChatAfterTime(User user, String groupId, Date afterTime, Integer size);
+    List<GroupChatModel> getGroupChatAfterTime(User user, String groupId, Date afterTime, Integer size);
 
-    List<ChatModel> getGroupChatBeforeTime(User user, String groupId, Date beforeTime, Integer size);
+    List<GroupChatModel> getGroupChatBeforeTime(User user, String groupId, Date beforeTime, Integer size);
 
     GroupModel joinGroup(User user, String groupCode);
 
