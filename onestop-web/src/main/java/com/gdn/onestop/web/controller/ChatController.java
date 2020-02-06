@@ -5,7 +5,6 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gdn.onestop.dto.UserGroupDto;
 import com.gdn.onestop.entity.User;
-import com.gdn.onestop.model.ChatModel;
 import com.gdn.onestop.model.GroupChatModel;
 import com.gdn.onestop.request.ChatSendRequest;
 import com.gdn.onestop.request.GroupChatSendRequest;
@@ -21,6 +20,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
+import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 
 import java.util.*;
 
@@ -51,14 +52,21 @@ public class ChatController {
     }
 
     @PostMapping("/group/{groupId}")
-    Response<GroupChatModel> pushGroupChat(@PathVariable("groupId") String groupId, @RequestBody GroupChatSendRequest request){
-        GroupChatModel chatModel = groupService.addChat(userService.getUserBySession(), groupId, request);
-        Map<String,String> data = objectMapper.convertValue(chatModel, mapStringStringType);
-        data.put("groupId",groupId);
+    Mono<Response<GroupChatModel>> pushGroupChat(@PathVariable("groupId") String groupId, @RequestBody GroupChatSendRequest request){
 
-        messagingService.pushMessageToFirebase("/topics/"+groupId, data);
+        return Mono.create(s -> {
+            GroupChatModel chatModel = groupService.addChat(userService.getUserBySession(), groupId, request);
+            Map<String,String> data = objectMapper.convertValue(chatModel, mapStringStringType);
+            data.put("groupId",groupId);
 
-        return ResponseHelper.isOk(chatModel);
+            messagingService.pushMessageToFirebase("/topics/"+groupId, data)
+                    .subscribeOn(Schedulers.single())
+                    .subscribe(isSuccess -> {
+                        if(isSuccess)s.success(ResponseHelper.isOk(chatModel));
+                        else s.success(ResponseHelper.isNotOk());
+                    });
+
+        });
     }
 
     @GetMapping("/group/{groupId}")
@@ -77,16 +85,27 @@ public class ChatController {
     }
 
     @PostMapping("/personal/{username}")
-    Response<Map<String, String>> pushPersonalChat(@PathVariable("username") String username, @RequestBody ChatSendRequest request){
-        Map<String,String> data = objectMapper.convertValue(request, mapStringStringType);
-        User user = userService.getUserBySession();
-        data.put("id", UUID.randomUUID().toString());
-        data.put("_from", user.getUsername());
-        data.put("_to",username);
-        data.put("createdAt",new Date().getTime()+"");
-        messagingService.pushMessageToFirebase("/topics/"+usernameToTopic(username), data);
+    Mono<Response<Map<String, String>>> pushPersonalChat(@PathVariable("username") String username, @RequestBody ChatSendRequest request){
+        return Mono.create(s -> {
+            Map<String,String> data = objectMapper.convertValue(request, mapStringStringType);
+            User user = userService.getUserBySession();
+            data.put("id", UUID.randomUUID().toString());
+            data.put("_from", user.getUsername());
+            data.put("_to",username);
+            data.put("createdAt",new Date().getTime()+"");
 
-        return ResponseHelper.isOk(data);
+            messagingService.pushMessageToFirebase("/topics/"+usernameToTopic(username), data)
+                    .subscribeOn(Schedulers.single())
+                    .subscribe(isSuccess -> {
+                if(isSuccess){
+                    s.success(ResponseHelper.isOk(data));
+                }
+                else{
+                    s.success(ResponseHelper.isNotOk());
+                }
+            });
+        });
+
     }
 
     @PostMapping("/subscribe")
@@ -116,7 +135,6 @@ public class ChatController {
         });
 
         String userTopic = usernameToTopic(user.getUsername());
-        System.out.println("subscribe to "+userTopic);
 
         try {
             FirebaseMessaging.getInstance().subscribeToTopic(tokenList, "/topics/"+userTopic);
