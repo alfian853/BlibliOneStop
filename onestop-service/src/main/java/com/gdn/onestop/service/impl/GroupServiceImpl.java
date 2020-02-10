@@ -149,6 +149,10 @@ public class GroupServiceImpl implements GroupService {
 
 
         if(chat.getIsMeeting()){
+
+            if(chat.getMeetingDate().before(new Date())){
+                throw new InvalidRequestException("Please select future time");
+            }
             GroupMeeting meeting = getOrCreateNewGroupMeeting(groupId);
             List<MeetingModel> meetingList = meeting.getOrCreateMeetingList();
             int meetingCount = meetingList.size();
