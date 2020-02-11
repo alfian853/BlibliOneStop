@@ -2,13 +2,13 @@ package com.gdn.onestop.service.impl;
 
 import com.gdn.onestop.dto.UserGroupDto;
 import com.gdn.onestop.entity.*;
-import com.gdn.onestop.model.ChatModel;
+import com.gdn.onestop.model.GroupChatModel;
 import com.gdn.onestop.model.GroupModel;
 import com.gdn.onestop.model.GroupType;
 import com.gdn.onestop.model.MeetingModel;
 import com.gdn.onestop.repository.*;
 import com.gdn.onestop.request.CreateGroupRequest;
-import com.gdn.onestop.request.ChatSendRequest;
+import com.gdn.onestop.request.GroupChatSendRequest;
 import com.gdn.onestop.request.PostNoteRequest;
 import com.gdn.onestop.response.MeetingNoteUpdateResponse;
 import com.gdn.onestop.service.GameService;
@@ -130,11 +130,11 @@ public class GroupServiceImpl implements GroupService {
     }
 
     @Override
-    public ChatModel addChat(User user, String groupId, ChatSendRequest request) {
+    public GroupChatModel addChat(User user, String groupId, GroupChatSendRequest request) {
 
         checkMemberValidity(user, groupId);
 
-        ChatModel chat = ChatModel.builder()
+        GroupChatModel chat = GroupChatModel.builder()
                 .username(user.getUsername())
                 .id(UUID.randomUUID().toString())
                 .text(request.getText())
@@ -149,6 +149,10 @@ public class GroupServiceImpl implements GroupService {
 
 
         if(chat.getIsMeeting()){
+
+            if(chat.getMeetingDate().before(new Date())){
+                throw new InvalidRequestException("Please select future time");
+            }
             GroupMeeting meeting = getOrCreateNewGroupMeeting(groupId);
             List<MeetingModel> meetingList = meeting.getOrCreateMeetingList();
             int meetingCount = meetingList.size();
@@ -170,13 +174,13 @@ public class GroupServiceImpl implements GroupService {
     }
 
     @Override
-    public List<ChatModel> getGroupChatAfterTime(User user, String groupId, Date afterTime, Integer size) {
+    public List<GroupChatModel> getGroupChatAfterTime(User user, String groupId, Date afterTime, Integer size) {
         checkMemberValidity(user, groupId);
         return groupRepository.getGroupChatAfterTime(groupId, afterTime, size);
     }
 
     @Override
-    public List<ChatModel> getGroupChatBeforeTime(User user, String groupId, Date beforeTime, Integer size) {
+    public List<GroupChatModel> getGroupChatBeforeTime(User user, String groupId, Date beforeTime, Integer size) {
         checkMemberValidity(user, groupId);
         return groupRepository.getGroupChatBeforeTime(groupId, beforeTime, size);
     }

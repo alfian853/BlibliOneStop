@@ -1,7 +1,9 @@
 package com.gdn.onestop.service;
 
+import reactor.core.publisher.Mono;
+
 import java.util.Map;
 
 public interface MessagingService {
-    void pushMessageToFirebase(String topic, Map<String, String> data);
+    Mono<Boolean> pushMessageToFirebase(String topic, Map<String, String> data);
 }

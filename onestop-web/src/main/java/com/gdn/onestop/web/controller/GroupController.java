@@ -4,10 +4,10 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gdn.onestop.dto.UserGroupDto;
 import com.gdn.onestop.entity.User;
-import com.gdn.onestop.model.ChatModel;
+import com.gdn.onestop.model.GroupChatModel;
 import com.gdn.onestop.model.GroupModel;
 import com.gdn.onestop.model.MeetingModel;
-import com.gdn.onestop.request.ChatSendRequest;
+import com.gdn.onestop.request.GroupChatSendRequest;
 import com.gdn.onestop.request.CreateGroupRequest;
 import com.gdn.onestop.request.PostNoteRequest;
 import com.gdn.onestop.response.MeetingNoteUpdateResponse;
@@ -16,7 +16,6 @@ import com.gdn.onestop.response.ResponseHelper;
 import com.gdn.onestop.service.GroupService;
 import com.gdn.onestop.service.MessagingService;
 import com.gdn.onestop.service.UserService;
-import com.gdn.onestop.service.exception.InvalidRequestException;
 import com.google.firebase.messaging.FirebaseMessaging;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -54,11 +53,22 @@ public class GroupController {
 
     private TypeReference<Map<String,String>> mapStringStringType = new TypeReference<Map<String,String>>(){};
 
+    private void subscribeToGroupTopic(String token, String groupId){
+        FirebaseMessaging.getInstance().subscribeToTopicAsync(
+                Collections.singletonList(token), "/topics/"+groupId
+        );
+    }
+
     @PostMapping
     Response<GroupModel> createGroup(@RequestBody CreateGroupRequest request){
-        return ResponseHelper.isOk(groupService.createGroup(
-                userService.getUserBySession(), request)
-        );
+        GroupModel groupModel = groupService.createGroup(userService.getUserBySession(), request);
+
+        if(groupModel != null){
+            User user = userService.getUserBySession();
+            subscribeToGroupTopic(user.getFcmToken(), groupModel.getId());
+        }
+
+        return ResponseHelper.isOk(groupModel);
     }
 
     @GetMapping("/last_update")
@@ -77,78 +87,34 @@ public class GroupController {
     Response<GroupModel> joinGroup(
             @RequestParam("group_code") String groupCode
     ){
-        return ResponseHelper.isOk(
-                groupService.joinGroup(userService.getUserBySession(), groupCode)
-        );
+        GroupModel groupModel = groupService.joinGroup(userService.getUserBySession(), groupCode);
+        if(groupModel != null){
+            User user = userService.getUserBySession();
+            subscribeToGroupTopic(user.getFcmToken(), groupModel.getId());
+        }
+        return ResponseHelper.isOk(groupModel);
     }
 
     @PostMapping("/{groupId}/leave")
     Response<Boolean> leaveGroup(@PathVariable("groupId") String groupId){
         groupService.leaveGroup(userService.getUserBySession(), groupId);
+
+        User user = userService.getUserBySession();
+
+        FirebaseMessaging.getInstance().unsubscribeFromTopicAsync(
+                Collections.singletonList(user.getFcmToken()), "/topics/"+groupId
+        );
+
         return ResponseHelper.isOk(true);
     }
-
-    @PostMapping("/{groupId}/chat")
-    Response<ChatModel> pushGroupChat(@PathVariable("groupId") String groupId,@RequestBody ChatSendRequest request){
-        ChatModel chatModel = groupService.addChat(userService.getUserBySession(), groupId, request);
-        Map<String,String> data = objectMapper.convertValue(chatModel, mapStringStringType);
-        data.put("groupId",groupId);
-
-        messagingService.pushMessageToFirebase("/topics/"+groupId, data);
-
-        return ResponseHelper.isOk(chatModel);
-    }
-
 
     /**
      * Unused class/function, for archive purpose
      */
     @MessageMapping("/chat")
-    void addGroupPost(Principal principal, @Payload ChatSendRequest request) {
-        ChatModel chat = groupService.addChat((User)principal, request.getGroupId(), request);
+    void addGroupPost(Principal principal, @Payload GroupChatSendRequest request) {
+        GroupChatModel chat = groupService.addChat((User)principal, request.getGroupId(), request);
         template.convertAndSend("/subscribe/chat/"+request.getGroupId(), chat);
-    }
-
-    @GetMapping("/{groupId}/chat")
-    Response<List<ChatModel>> getGroupChats(
-            @PathVariable("groupId") String groupId,
-            @RequestParam(value = "after_time", required = false) Long afterTime,
-            @RequestParam(value = "before_time", required = false) Long beforeTime,
-            @RequestParam(value = "size") Integer size){
-        if((afterTime == null) == (beforeTime == null))
-            throw new InvalidRequestException("required parameter either after_time or before_time");
-        return ResponseHelper.isOk(
-                (afterTime != null) ?
-                        groupService.getGroupChatAfterTime(userService.getUserBySession(), groupId, new Date(afterTime), size) :
-                        groupService.getGroupChatBeforeTime(userService.getUserBySession(), groupId, new Date(beforeTime), size)
-        );
-    }
-
-    @PostMapping("/subscribe")
-    Response<Boolean> subcribeGroups(@RequestParam("token") String token){
-
-        UserGroupDto userGroup = groupService.getGroupData(userService.getUserBySession());
-        userGroup.getGuilds().forEach(guild -> {
-            FirebaseMessaging.getInstance().subscribeToTopicAsync(
-                    Collections.singletonList(token), "/topics/"+guild.getId()
-            );
-            System.out.println("subscribe to topic "+guild.getId());
-
-        });
-        userGroup.getSquads().forEach(guild -> {
-            FirebaseMessaging.getInstance().subscribeToTopicAsync(
-                    Collections.singletonList(token), "/topics/"+guild.getId()
-            );
-            System.out.println("subscribe to topic "+guild.getId());
-        });
-
-        userGroup.getTribes().forEach(guild -> {
-            FirebaseMessaging.getInstance().subscribeToTopicAsync(
-                    Collections.singletonList(token), "/topics/"+guild.getId()
-            );
-        });
-
-        return ResponseHelper.isOk(true);
     }
 
     @GetMapping("/{groupId}/meeting")

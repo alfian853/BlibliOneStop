@@ -32,6 +32,8 @@ public class User implements UserDetails, Principal {
 
     Boolean isAdmin = false;
 
+    String fcmToken = null;
+
     @Transient
     private boolean enabled = true;
     @Transient
