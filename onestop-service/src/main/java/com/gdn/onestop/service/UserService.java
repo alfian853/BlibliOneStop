@@ -8,4 +8,5 @@ public interface UserService extends UserDetailsService {
 
     User getUserBySession();
     boolean createUser(UserRegisterRequest request);
+    void saveUser(User user);
 }

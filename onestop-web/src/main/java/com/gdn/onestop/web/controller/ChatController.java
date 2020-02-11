@@ -113,13 +113,17 @@ public class ChatController {
 
         List<String> tokenList = Collections.singletonList(token);
         User user = userService.getUserBySession();
+
+        user.setFcmToken(token);
+
+        userService.saveUser(user);
+
         UserGroupDto userGroup = groupService.getGroupData(user);
 
         userGroup.getGuilds().forEach(guild -> {
             FirebaseMessaging.getInstance().subscribeToTopicAsync(
                     tokenList, "/topics/"+guild.getId()
             );
-
         });
 
         userGroup.getSquads().forEach(guild -> {

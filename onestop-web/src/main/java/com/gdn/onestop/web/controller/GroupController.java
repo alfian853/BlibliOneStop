@@ -16,6 +16,7 @@ import com.gdn.onestop.response.ResponseHelper;
 import com.gdn.onestop.service.GroupService;
 import com.gdn.onestop.service.MessagingService;
 import com.gdn.onestop.service.UserService;
+import com.google.firebase.messaging.FirebaseMessaging;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.messaging.handler.annotation.MessageMapping;
@@ -24,6 +25,7 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -51,11 +53,22 @@ public class GroupController {
 
     private TypeReference<Map<String,String>> mapStringStringType = new TypeReference<Map<String,String>>(){};
 
+    private void subscribeToGroupTopic(String token, String groupId){
+        FirebaseMessaging.getInstance().subscribeToTopicAsync(
+                Collections.singletonList(token), "/topics/"+groupId
+        );
+    }
+
     @PostMapping
     Response<GroupModel> createGroup(@RequestBody CreateGroupRequest request){
-        return ResponseHelper.isOk(groupService.createGroup(
-                userService.getUserBySession(), request)
-        );
+        GroupModel groupModel = groupService.createGroup(userService.getUserBySession(), request);
+
+        if(groupModel != null){
+            User user = userService.getUserBySession();
+            subscribeToGroupTopic(user.getFcmToken(), groupModel.getId());
+        }
+
+        return ResponseHelper.isOk(groupModel);
     }
 
     @GetMapping("/last_update")
@@ -74,14 +87,24 @@ public class GroupController {
     Response<GroupModel> joinGroup(
             @RequestParam("group_code") String groupCode
     ){
-        return ResponseHelper.isOk(
-                groupService.joinGroup(userService.getUserBySession(), groupCode)
-        );
+        GroupModel groupModel = groupService.joinGroup(userService.getUserBySession(), groupCode);
+        if(groupModel != null){
+            User user = userService.getUserBySession();
+            subscribeToGroupTopic(user.getFcmToken(), groupModel.getId());
+        }
+        return ResponseHelper.isOk(groupModel);
     }
 
     @PostMapping("/{groupId}/leave")
     Response<Boolean> leaveGroup(@PathVariable("groupId") String groupId){
         groupService.leaveGroup(userService.getUserBySession(), groupId);
+
+        User user = userService.getUserBySession();
+
+        FirebaseMessaging.getInstance().unsubscribeFromTopicAsync(
+                Collections.singletonList(user.getFcmToken()), "/topics/"+groupId
+        );
+
         return ResponseHelper.isOk(true);
     }
 
